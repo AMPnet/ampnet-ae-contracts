@@ -1,0 +1,6 @@
+contract Organization =
+    record state = {
+        _admin      : address }
+    
+    public stateful function init(admin: address) : state = 
+        { _admin = admin }

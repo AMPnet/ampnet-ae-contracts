@@ -1,0 +1,4 @@
+node_modules
+
+# still not sure if it is safe to ignore forgae-store (?)
+.forgae-store
