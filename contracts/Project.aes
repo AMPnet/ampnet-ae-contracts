@@ -1,0 +1,20 @@
+contract Project =
+    record state = {
+        _organization           : OrgInterface,
+        _minInvestmentPerUser   : int,
+        _maxInvestmentPerUser   : int,
+        _investmentCap          : int,
+        _investors              : list(address),
+        _investments            : map(address, int) }
+
+    public stateful function init(
+        organization: OrgInterface, 
+        minInvestmentPerUser: int,
+        maxInvestmentPerUSer: int,
+        investmentCap: int) : state =
+        { _organization = organization,
+          _minInvestmentPerUser = minInvestmentPerUser,
+          _maxInvestmentPerUser = maxInvestmentPerUSer,
+          _investmentCap = investmentCap,
+          _investors = [],
+          _investments = {} }

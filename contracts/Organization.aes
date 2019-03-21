@@ -1,6 +1,13 @@
 contract Organization =
     record state = {
-        _admin      : address }
+        _owner      : address }
     
-    public stateful function init(admin: address) : state = 
-        { _admin = admin }
+    public stateful function init() : state = 
+        { _owner = Call.caller }
+
+    private function require(b : bool, err : string) =
+        if(!b) 
+            abort(err)
+    
+    private function onlyOwner() =
+        require(Call.caller == state._owner, "Only organization owner can make this action!")

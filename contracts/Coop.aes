@@ -1,8 +1,3 @@
-import "Organization.aes"
-
-contract OrgInterface =
-    function placeholder : () => ()
-
 contract TokenInterface =
     function placeholder : () => ()
 
@@ -10,34 +5,28 @@ contract Coop =
     record state = {
         _owner                      : address,
         _activeWallets              : map(address, bool),
-        _activeOrganizations        : map(address, bool),
-        _organizations              : list(OrgInterface),
         _token                      : option(TokenInterface) }
     
     public stateful function init() : state =
         { _owner = Call.caller,
           _activeWallets = {},
-          _activeOrganizations = {},
-          _organizations = [],
           _token = None }
     
-    public stateful function setToken(token: TokenInterface) {
+    public stateful function setToken(token: TokenInterface) =
         onlyOwner()
-        put(state{_token = token})
-    }
+        put(state{_token = Some(token)})
 
-    public stateful function addWallet(wallet: address) {
+    public stateful function addWallet(wallet: address) =
         onlyOwner()
         put(state{_activeWallets[wallet] = true})
-    }
 
-    public stateful function addOrganization() {
-        
-    }
+    public function isWalletActive(wallet: address) : bool = state._activeWallets[wallet]
+
+    public function owner(): address = state._owner
 
     private function require(b : bool, err : string) =
         if(!b) 
             abort(err)
-    
+
     private function onlyOwner() =
         require(Call.caller == state._owner, "Only owner can make this action!")
