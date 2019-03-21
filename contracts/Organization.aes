@@ -4,6 +4,8 @@ contract Organization =
     
     public stateful function init() : state = 
         { _owner = Call.caller }
+    
+    public function owner() : address = state._owner
 
     private function require(b : bool, err : string) =
         if(!b) 
