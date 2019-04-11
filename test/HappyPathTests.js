@@ -41,7 +41,6 @@ describe("Happy path test scenarios", () => {
 		let eurTestCall = await eur.call("test")
 		let eurTestCallDecoded = await eurTestCall.decode("(int)") // this fails with giving up after 10 blocks mined
 		console.log("eurTestCallDecoded", eurTestCallDecoded)
-
 	})
 
 	/////////// ------ HELPER FUNCTIONS ------- ////////
@@ -62,20 +61,12 @@ describe("Happy path test scenarios", () => {
       nativeMode: true,
 		  networkId: 'ae_devnet'
 		});
-
-		const ae = await Ae({
-      url: config.host,
-      internalUrl: config.internalHost,
-      keypair: wallets[0],
-      nativeMode: true,
-		  networkId: 'ae_devnet'
-		});
 		
 		let coopSource = utils.readFileRelative('./contracts/Coop.aes', "utf-8")
-		compiledCoop = await ae.contractCompile(coopSource, { gas: config.gas })
+		compiledCoop = await coopOwnerClient.contractCompile(coopSource, { gas: config.gas })
 
 		let eurSource = utils.readFileRelative('./contracts/EUR.aes', "utf-8")
-		compiledEur = await ae.contractCompile(eurSource, { gas: config.gas })
+		compiledEur = await eurOwnerClient.contractCompile(eurSource, { gas: config.gas })
 	}
 
 	async function deployContracts() {
