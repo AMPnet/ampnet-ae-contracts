@@ -14,14 +14,39 @@
  *  OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  *  PERFORMANCE OF THIS SOFTWARE.
  */
-const Ae = require('@aeternity/aepp-sdk').Universal;
+const Ae = require('@aeternity/aepp-sdk').Universal
+const Crypto = require('@aeternity/aepp-sdk').Crypto
 const Deployer = require('forgae').Deployer;
 const gasLimit = 1000000;
 
 const deploy = async (network, privateKey) => {
-	let deployer = new Deployer(network, privateKey)
 
-	let result = await deployer.deploy("./contracts/ExampleContract.aes")
+	/* Works as expected */
+
+	let coopOwner = privateKey
+	let eurOwner = '7c6e602a94f30e4ea7edabe4376314f69ba7eaa2f355ecedb339df847b6f0d80575f81ffb0a297b7725dc671da0b1769b1fc5cbe45385c7b5ad1fc2eaf1d609d'
+
+	let coopDeployer = new Deployer(network, coopOwner)
+	let coop = await coopDeployer.deploy("./contracts/Coop.aes")
+
+	let eurDeployer = new Deployer(network, eurOwner)
+	let coopAddressDecoded = `0x${Crypto.decodeBase58Check(coop.address.split('_')[1]).toString('hex')}`
+	console.log(`coop address decoded: ${coopAddressDecoded}`)
+	let eur = await eurDeployer.deploy("./contracts/EUR.aes", gasLimit, `(${coopAddressDecoded})`) 
+
+	let eurAddressDecoded = `0x${Crypto.decodeBase58Check(eur.address.split('_')[1]).toString('hex')}`
+	console.log(`eur address decoded: ${eurAddressDecoded}`)
+
+	let result = await coop.call("setToken", {
+		args: `(${eurAddressDecoded})`
+	})
+
+	let balanceCall = await coop.call("balance_of", {
+		args: `(0x0)`
+	})
+	let balanceCallDecoded = await balanceCall.decode("(int)")
+
+	console.log(balanceCallDecoded)
 };
 
 module.exports = {

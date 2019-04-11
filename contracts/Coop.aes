@@ -1,5 +1,5 @@
 contract TokenInterface =
-    function placeholder : () => () // Do we need interface anyways?
+    function balanceOf : (address) => (int)
 
 contract Coop =
     record state = {
@@ -24,10 +24,15 @@ contract Coop =
 
     public function owner(): address = state._owner
 
-    public function token(): TokenInterface =
+    public function token(): address =
         switch(state._token)
             None => abort("Cooperative has no token provided!")
-            Some(token) => token
+            Some(token) => token.address
+
+    public function balance_of(wallet: address): int =
+        switch(state._token)
+            None => 13
+            Some(token) => token.balanceOf(wallet)
 
     private function require(b : bool, err : string) =
         if(!b) 
@@ -35,3 +40,5 @@ contract Coop =
 
     private function onlyOwner() =
         require(Call.caller == state._owner, "Only owner can make this action!")
+    
+    public function test() : int = 42

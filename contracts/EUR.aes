@@ -110,6 +110,8 @@ contract EUR =
 
     true
 
+  public function test() : int = 42
+
   private function add(_a : int, _b : int) : int =
     let c : int = _a + _b
     require(c >= _a, "Error")

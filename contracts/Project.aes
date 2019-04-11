@@ -1,10 +1,15 @@
 contract TokenInterface =
     function allowance : (address, address) => int
     function approve : (address, int) => bool
+    function transfer : (address, int) => bool
     function transferFrom : (address, address, int) => bool
 
+contract CoopInterface =
+    function token: () => TokenInterface
+
 contract OrgInterface =
-    function token : () => TokenInterface
+    function isVerified : () => bool
+    function coop : () => CoopInterface
     function owner : () => address
 
 contract Project =
@@ -14,6 +19,7 @@ contract Project =
         _maxInvestmentPerUser       : int,
         _investmentCap              : int,
         _endsAt                     : int,
+        _investors                  : map(int, address),
         _investments                : map(address, int),
         _totalFundsRaised           : int,
         _payoutInProcess            : bool,
@@ -27,11 +33,18 @@ contract Project =
         maxInvestmentPerUSer: int,
         investmentCap: int,
         endsAt: int) : state =
+        require(
+            Call.caller == organization.owner(),
+            "Must be organization owner to be able to create Project.")
+        require(
+            organization.isVerified(),
+            "Organization must have an active wallet before it can create new Project.")
         { _organization = organization,
           _minInvestmentPerUser = minInvestmentPerUser,
           _maxInvestmentPerUser = maxInvestmentPerUSer,
           _investmentCap = investmentCap,
           _endsAt = endsAt,
+          _investors = {},
           _investments = {},
           _totalFundsRaised = 0,
           _payoutInProcess = false,
@@ -40,7 +53,7 @@ contract Project =
           revenue_mint_batch_size = 50 }   // rethink about this constant (what value should it be? can we change it afterwards? etc..)
     
     public stateful function invest() =
-        let token = state._organization.token()
+        let token = state._organization.coop().token()
         let amount = token.allowance(Call.caller, Contract.address)
         let usersPreviousTotalInvestment = state._investments[Call.caller = 0]
         let usersNewTotalInvestment = usersPreviousTotalInvestment + amount
@@ -72,6 +85,10 @@ contract Project =
 
         token.transferFrom(Call.caller, Contract.address, amount)
         
+        if (Map.member(Call.caller, state._investments))
+            let newInvestorIndex = Map.size(state._investors)
+            put(state{ _investors[newInvestorIndex] = Call.caller })
+
         put(state{
             _investments[Call.caller = 0] @ investment = investment + amount,
             _totalFundsRaised @ raised = raised + amount })
@@ -85,7 +102,7 @@ contract Project =
             onlyOrganizationAdmin(),
             "Only organization owner can request withdrawal of project funds.")
 
-        state._organization.token().approve(tokenIssuer, amount)
+        state._organization.coop().token().approve(tokenIssuer, amount)
     
     public stateful function startRevenueSharesPayout(revenue: int) =
         require(
@@ -122,7 +139,7 @@ contract Project =
             state._payoutInProcess,
             "Must call startRevenueSharesPayout(revenue) before actual payout process is executed.")
 
-        let numOfInvestors = Map.size(state._investments)
+        let numOfInvestors = Map.size(state._investors)
         
         let lastInvestorIndex = numOfInvestors - 1
         let lastBatchIndex = state._nextInvestorPayoutIndex + state.revenue_mint_batch_size - 1
@@ -144,7 +161,8 @@ contract Project =
         else
             put(state{ _nextInvestorPayoutIndex = toIndex + 1 })
         
-        // TODO - iterate over investors (Map.to_list()) and payout batch of revenue shares
+        recursiveRevenuBatchPayout(fromIndex, toIndex, revenue)
+
 
     public function hasFundingExpired() : bool = Chain.timestamp > state._endsAt
 
@@ -155,3 +173,16 @@ contract Project =
     private function require(b : bool, err : string) =
         if(!b) 
             abort(err)
+
+    private stateful function recursiveRevenuBatchPayout(
+        currentInvestorIndex: int, 
+        lastInvestorIndex: int,
+        revenue: int) =
+        let investor = state._investors[currentInvestorIndex]
+        let investment = state._investments[investor]
+        let share = revenue * investment / state._totalFundsRaised
+
+        state._organization.coop().token().transfer(investor, share)
+
+        if (currentInvestorIndex < lastInvestorIndex)
+            recursiveRevenuBatchPayout(currentInvestorIndex + 1, lastInvestorIndex, revenue)
