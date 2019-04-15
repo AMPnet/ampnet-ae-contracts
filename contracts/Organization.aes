@@ -1,58 +1,58 @@
 contract CoopInterface = 
-    function isWalletActive : (address) => bool
+    function is_wallet_active : (address) => bool
 
 contract Organization =
     record state = {
-        _coop       : CoopInterface,
-        _owner      : address,
-        _members    : map(address, bool) }
+        coop       : CoopInterface,
+        owner      : address,
+        members    : map(address, bool) }
     
     public stateful function init(coop: CoopInterface) : state =
         require(
-            coop.isWalletActive(Call.caller),
+            coop.is_wallet_active(Call.caller),
             "Cannot create Organization, caller not registered Cooperative user.")
-        { _coop = coop,
-          _owner = Call.caller, 
-          _members = {} }
+        { coop = coop,
+          owner = Call.caller, 
+          members = {} }
     
-    public stateful function addMember(member: address) =
-        onlyOwner()
-        onlyActiveOrganization()
-        onlyActiveWallet(member)
-        put(state{ _members[member] = false })
+    public stateful function add_member(member: address) =
+        only_owner()
+        only_active_organization()
+        only_active_wallet(member)
+        put(state{ members[member] = false })
     
-    public stateful function confirmMembership() =
-        onlyActiveOrganization()
-        onlyActiveWallet(Call.caller)
+    public stateful function confirm_membership() =
+        only_active_organization()
+        only_active_wallet(Call.caller)
 
-        let approval = Map.lookup(Call.caller, state._members)
+        let approval = Map.lookup(Call.caller, state.members)
         switch(approval)
             None => abort("User tried to accept Organization invite which does not exist!")
             Some(membershipConfirmed) =>
                 if (membershipConfirmed)
                     abort("User tried to accept Organization invite but it is already accepted!")
                 else
-                    put(state{ _members[Call.caller] = true })
+                    put(state{ members[Call.caller] = true })
     
-    public function owner() : address = state._owner
+    public function owner() : address = state.owner
 
-    public function coop() : CoopInterface = state._coop
+    public function coop() : CoopInterface = state.coop
 
-    public function isVerified() : bool = state._coop.isWalletActive(Contract.address)
+    public function is_verified() : bool = state.coop.is_wallet_active(Contract.address)
 
     private function require(b : bool, err : string) =
         if(!b) 
             abort(err)
     
-    private function onlyOwner() =
-        require(Call.caller == state._owner, "Only organization owner can make this action!")
+    private function only_owner() =
+        require(Call.caller == state.owner, "Only organization owner can make this action!")
 
-    private function onlyActiveWallet(wallet: address) =
+    private function only_active_wallet(wallet: address) =
         require(
-            state._coop.isWalletActive(wallet),
+            state.coop.is_wallet_active(wallet),
             "Only registered Cooperative member can make this action.")
     
-    private function onlyActiveOrganization() =
+    private function only_active_organization() =
         require(
-            state._coop.isWalletActive(Contract.address),
+            state.coop.is_wallet_active(Contract.address),
             "Organization must have active wallet!")

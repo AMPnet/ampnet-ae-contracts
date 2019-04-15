@@ -1,132 +1,115 @@
 contract CoopInterface =
-    function isWalletActive : (address) => bool
+    function is_wallet_active : (address) => bool
 
 contract EUR =
   record state = {
-    _owner            : address,
-    _totalSupply      : int,
-    _balances         : map(address, int),
-    _allowed          : map((address,address), int),
-    _coop             : CoopInterface }
+    owner            : address,
+    totalSupply      : int,
+    balances         : map(address, int),
+    allowed          : map((address,address), int),
+    coop             : CoopInterface }
 
   public stateful function init(coop : CoopInterface) : state =
-    { _owner       = Call.caller,
-      _totalSupply = 0,
-      _balances    = {},
-      _allowed     = {},
-      _coop        = coop }
+    { owner       = Call.caller,
+      totalSupply = 0,
+      balances    = {},
+      allowed     = {},
+      coop        = coop }
 
-  private function lookupByAddress(k : address, m, v) =
-    switch(Map.lookup(k, m))
-      None    => v
-      Some(x) => x
+  private function lookup_by_address(k : address, m, v) = Map.lookup_default(k, m, v)
       
-  public function transferOwnership(newOwner: address) =
-    onlyOwner()
-    put(state{_owner = newOwner})
+  public function transfer_ownership(newOwner: address) =
+    only_owner()
+    put(state{ owner = newOwner })
 
-  public function totalSupply() : int = state._totalSupply
+  public function total_supply() : int = state.totalSupply
 
-  public function balanceOf(who: address) : int = lookupByAddress(who, state._balances, 0)
+  public function balance_of(who: address) : int = lookup_by_address(who, state.balances, 0)
 
-  public function allowance(owner: address, spender: address) : int = 
-    switch(Map.lookup((owner, spender), state._allowed))
-	    None    => 0
-	    Some(x) => x
+  public function allowance(owner: address, spender: address) : int = Map.lookup_default((owner, spender), state.allowed, 0)
 
   public stateful function transfer(to: address, value: int) : bool =
-    onlyCoopUser(Call.caller)
-    onlyCoopUser(to)
+    only_coop_user(Call.caller)
+    only_coop_user(to)
     _transfer(Call.caller, to, value)
 
   public stateful function approve(spender: address, value: int) : bool = 
-    onlyCoopUser(Call.caller)
-    onlyCoopUser(spender)
+    only_coop_user(Call.caller)
+    only_coop_user(spender)
 
     require(value > 0, "Value is sub zero")
     require(spender != #0, "Invalid spender address")
 
-    put(state{_allowed[(Call.caller,spender)] = value})
+    put(state{ allowed[(Call.caller, spender)] = value })
 
     true
 
   private stateful function _transfer(from: address, to: address, value: int) : bool =
     require(value > 0, "Value is sub zero")
-    require(value =< balanceOf(from), "Not enough balance")
+    require(value =< balance_of(from), "Not enough balance")
     require(to != #0, "Invalid address")
 
     put(state{
-      _balances[from] = sub(balanceOf(from), value),
-      _balances[to] = add(balanceOf(to), value)})
+      balances[from] = balance_of(from) - value,
+      balances[to] = balance_of(to) + value})
 
     true
 
-  public stateful function transferFrom(from: address, to: address, value: int) : bool =
-    onlyCoopUser(Call.caller)
-    onlyCoopUser(from)
-    onlyCoopUser(to)
+  public stateful function transfer_from(from: address, to: address, value: int) : bool =
+    only_coop_user(Call.caller)
+    only_coop_user(from)
+    only_coop_user(to)
     
-    require(state._allowed[(from, Call.caller)] >= value, "Value is bigger than allowed")
+    require(state.allowed[(from, Call.caller)] >= value, "Value is bigger than allowed")
       
-    put(state{_allowed[(from,Call.caller)] = sub(state._allowed[(from,Call.caller)], value)})
+    put(state{ allowed[(from, Call.caller)] = state.allowed[(from, Call.caller)] - value })
     _transfer(from, to, value)
 
     true
 
-  public stateful function increaseAllowance(spender: address, addedValue: int) : bool =
+  public stateful function increase_allowance(spender: address, addedValue: int) : bool =
     require(spender != #0, "Invalid address")
-    onlyCoopUser(Call.caller)
-    onlyCoopUser(spender)
-    put(state{_allowed[(Call.caller, spender)] = add(state._allowed[(Call.caller,spender)], addedValue)})
+    only_coop_user(Call.caller)
+    only_coop_user(spender)
+    put(state{ allowed[(Call.caller, spender)] = state.allowed[(Call.caller, spender)] + addedValue })
 
     true
 
-  public stateful function decreaseAllowance(spender: address, subtractedValue: int) : bool =
+  public stateful function decrease_allowance(spender: address, subtractedValue: int) : bool =
     require(spender != #0, "Invalid address")
-    onlyCoopUser(Call.caller)
-    onlyCoopUser(spender)
-    put(state{_allowed[(Call.caller,spender)] = sub(state._allowed[(Call.caller,spender)], subtractedValue)})
+    only_coop_user(Call.caller)
+    only_coop_user(spender)
+    put(state{ allowed[(Call.caller, spender)] = state.allowed[(Call.caller, spender)] - subtractedValue })
 
     true
 
   public stateful function mint(account: address, value: int) : bool =
-    onlyOwner()
-    onlyCoopUser(account)
+    only_owner()
+    only_coop_user(account)
     require(account != #0, "Invalid address")
 
-    put(state{_totalSupply = add(state._totalSupply, value),
-          _balances[account] = add(balanceOf(account), value)})
+    put(state{ totalSupply = state.totalSupply + value,
+          balances[account] = balance_of(account) + value })
 
     true
 
   public stateful function burn(account: address, value: int) : bool =
-    onlyOwner()
-    onlyCoopUser(account)
-    require(state._allowed[(account, Call.caller)] >= value, "Value to be burned is bigger than allowed.")
-    require(state._balances[account] >= value, "Value to be burned is not present")
+    only_owner()
+    only_coop_user(account)
+    require(state.allowed[(account, Call.caller)] >= value, "Value to be burned is bigger than allowed.")
+    require(state.balances[account] >= value, "Value to be burned is not present")
 
-    put(state{_totalSupply = sub(state._totalSupply, value),
-          _balances[account] = sub(balanceOf(account), value)})
+    put(state{ totalSupply = state.totalSupply - value,
+          balances[account] = balance_of(account) - value })
 
     true
-
-  public function test() : int = 42
-
-  private function add(_a : int, _b : int) : int =
-    let c : int = _a + _b
-    require(c >= _a, "Error")
-    c
-
-  private function sub(_a : int, _b : int) : int =
-    require(_b =< _a, "Error")
-    _a - _b
 
   private function require(b : bool, err : string) =
     if(!b) 
       abort(err)
 
-  private function onlyOwner() =
-      require(Call.caller == state._owner, "Only owner can mint!")
+  private function only_owner() =
+      require(Call.caller == state.owner, "Only owner can mint!")
 
-  private function onlyCoopUser(wallet: address) =
-    require(state._coop.isWalletActive(wallet), "Only registered Cooperative user can make this action!")
+  private function only_coop_user(wallet: address) =
+    require(state.coop.is_wallet_active(wallet), "Only registered Cooperative user can make this action!")

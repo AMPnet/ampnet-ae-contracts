@@ -34,13 +34,13 @@ describe("Happy path test scenarios", () => {
 	///////////// --------- TEST CASES ----------- ///////////
 
 	it('test', async () => {
-		let coopTestCall = await coop.call("test")
-		let coopTestCallDecoded = await coopTestCall.decode("(int)")
-		console.log("coopTestCallDecoded", coopTestCallDecoded)
+		// let coopTestCall = await coop.call("test")
+		// let coopTestCallDecoded = await coopTestCall.decode("(int)")
+		// console.log("coopTestCallDecoded", coopTestCallDecoded)
 		
-		let eurTestCall = await eur.call("test")
-		let eurTestCallDecoded = await eurTestCall.decode("(int)") // this fails with giving up after 10 blocks mined
-		console.log("eurTestCallDecoded", eurTestCallDecoded)
+		// let eurTestCall = await eur.call("test")
+		// let eurTestCallDecoded = await eurTestCall.decode("(int)") // this fails with giving up after 10 blocks mined
+		// console.log("eurTestCallDecoded", eurTestCallDecoded)
 	})
 
 	/////////// ------ HELPER FUNCTIONS ------- ////////
@@ -74,7 +74,10 @@ describe("Happy path test scenarios", () => {
 		console.log(`decoded coop address: ${decodeAddress(coop.address)}`)
 		
 		eur = await compiledEur.deploy({
-			args: `(${decodeAddress(coop.address)})`,
+			initState: `(${decodeAddress(coop.address)})`,
+			options: {
+				gas: 100000
+			}
 		})
 		console.log(eur)
 		console.log(`decoded eur address: ${decodeAddress(eur.address)}`)
@@ -86,12 +89,12 @@ describe("Happy path test scenarios", () => {
 
 		/* This fails with gas_error */
 
-		// let delegatedCall = await coop.call("balance_of", {
-		// 	args: `(0x0)`
-		// })
-		// console.log(delegatedCall)
-		// let decoded = await delegatedCall.decode("(int)")
-		// console.log(decoded)
+		let delegatedCall = await coop.call("balance_of", {
+			args: `(0x0)`
+		})
+		console.log(delegatedCall)
+		let decoded = await delegatedCall.decode("(int)")
+		console.log(decoded)
 	}
 
 	function decodeAddress(key) {

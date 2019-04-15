@@ -1,44 +1,37 @@
 contract TokenInterface =
-    function balanceOf : (address) => (int)
+    function balance_of : (address) => (int)
 
 contract Coop =
     record state = {
-        _owner                      : address,
-        _activeWallets              : map(address, bool),
-        _token                      : option(TokenInterface) }
+        owner                      : address,
+        activeWallets              : map(address, bool),
+        token                      : option(TokenInterface) }
     
     public stateful function init() : state =
-        { _owner = Call.caller,
-          _activeWallets = {},
-          _token = None }
+        { owner = Call.caller,
+          activeWallets = {},
+          token = None }
     
-    public stateful function setToken(token: TokenInterface) =
-        onlyOwner()
-        put(state{_token = Some(token)})
+    public stateful function set_token(token: TokenInterface) =
+        only_owner()
+        put(state{ token = Some(token) })
 
-    public stateful function addWallet(wallet: address) =
-        onlyOwner()
-        put(state{_activeWallets[wallet] = true})
+    public stateful function add_wallet(wallet: address) =
+        only_owner()
+        put(state{ activeWallets[wallet] = true })
 
-    public function isWalletActive(wallet: address) : bool = state._activeWallets[wallet]
+    public function is_wallet_active(wallet: address) : bool = state.activeWallets[wallet]
 
-    public function owner(): address = state._owner
+    public function owner(): address = state.owner
 
-    public function token(): address =
-        switch(state._token)
-            None => abort("Cooperative has no token provided!")
-            Some(token) => token.address
-
-    public function balance_of(wallet: address): int =
-        switch(state._token)
-            None => 13
-            Some(token) => token.balanceOf(wallet)
+    public function token() : TokenInterface = 
+        switch (state.token)
+            None => abort("Token not initalized!")
+            Some(token) => token
 
     private function require(b : bool, err : string) =
         if(!b) 
             abort(err)
 
-    private function onlyOwner() =
-        require(Call.caller == state._owner, "Only owner can make this action!")
-    
-    public function test() : int = 42
+    private function only_owner() =
+        require(Call.caller == state.owner, "Only owner can make this action!")
