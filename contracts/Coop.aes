@@ -22,7 +22,9 @@ contract Coop =
 
     public function is_wallet_active(wallet: address) : bool = state.activeWallets[wallet]
 
-    public function owner(): address = state.owner
+    public function owner() : address = state.owner
+    
+    public function timestamp() : int = Chain.timestamp 
 
     public function token() : TokenInterface = 
         switch (state.token)
