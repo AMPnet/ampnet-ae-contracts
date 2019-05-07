@@ -178,14 +178,16 @@ contract Project =
             recursive_revenue_batch_payout(currentInvestorIndex + 1, lastInvestorIndex, revenue)
 
 
-    private stateful function recursive_investment_add(investments: list((address, int))) =
+    private stateful function recursive_investment_add(investments: list((address, int))) : int =
         switch (investments)
             investment::investments' =>
                 switch (investment)
                     (addr, amount) =>
                         check_investment_preconditions(addr, amount)
                         persist_investment(addr, amount)
-                recursive_investment_add(investments')
+                1 + recursive_investment_add(investments')
+            [] => 0
+            
 
     private function check_investment_preconditions(investor: address, amount: int) =
         let usersPreviousTotalInvestment = state.investments[investor = 0]
