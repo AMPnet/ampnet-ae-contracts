@@ -17,19 +17,31 @@ contract Coop =
         put(state{ token = Some(token) })
 
     public stateful function add_wallet(wallet: address) =
+        abort("test message")
         only_owner()
         put(state{ activeWallets[wallet] = true })
+
+    public stateful function add_wallets(wallets: list(address)) =
+        only_owner()
+        recursive_wallets_add(wallets)
 
     public function is_wallet_active(wallet: address) : bool = state.activeWallets[wallet]
 
     public function owner() : address = state.owner
     
-    public function timestamp() : int = Chain.timestamp 
+    public function timestamp() : int = Chain.timestamp
 
     public function token() : TokenInterface = 
         switch (state.token)
             None => abort("Token not initalized!")
             Some(token) => token
+
+    private stateful function recursive_wallets_add(wallets: list(address)) : int =
+        switch (wallets)
+            wallet::wallets' =>
+                put(state{ activeWallets[wallet] = true })
+                1 + recursive_wallets_add(wallets')
+            [] => 0
 
     private function require(b : bool, err : string) =
         if(!b) 
