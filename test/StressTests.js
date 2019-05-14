@@ -3,11 +3,10 @@ const Eur = require("./contracts/eur").Eur
 const Organization = require("./contracts/organization").Organization
 const Project = require("./contracts/project").Project
 
-const accountsInitializer = require("./init/accountsInitializer")
-const contractsInitializer = require("./init/contractsInitializer")
+const accountsInitializer = require("./init/accounts")
+const contractsInitializer = require("./init/contracts")
 const deployer = require("./deploy/deployer")
 
-const error = require("./utils/error")
 const randomstring = require('randomstring')
 const util = require('./utils/util')
 const time = require('./utils/time')
@@ -32,7 +31,6 @@ describe("Stress tests", () => {
   	before(async () => {
 		accounts = await accountsInitializer.initialize(wallets)
 		contracts = await contractsInitializer.initialize(accounts)
-		error.init(accounts.coop.client)
 	})
 
 	beforeEach(async () => {

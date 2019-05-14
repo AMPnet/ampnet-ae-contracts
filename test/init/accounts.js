@@ -1,6 +1,10 @@
-const Ae = require('@aeternity/aepp-sdk').Universal;
+const Ae = require('@aeternity/aepp-sdk').Universal
 const config = require("./config").local
 const util = require("../utils/util")
+
+let mainClient
+
+function main() { return mainClient }
 
 async function initialize(wallets) {
     let coopKeypair = wallets[0]
@@ -13,7 +17,7 @@ async function initialize(wallets) {
         nativeMode: true,
         networkId: 'ae_devnet'
     })
-     
+
     let eurKeypair = wallets[1]
     let eurAddress = util.decodeAddress(wallets[1].publicKey)
     let eurPrivateKey = wallets[1].secretKey
@@ -47,6 +51,8 @@ async function initialize(wallets) {
         networkId: 'ae_devnet'
     })
 
+    mainClient = coopClient
+
     return {
         coop: {
             client: coopClient,
@@ -71,4 +77,4 @@ async function initialize(wallets) {
     }
 }
 
-Object.assign(exports, { initialize })
+Object.assign(exports, { initialize, main })

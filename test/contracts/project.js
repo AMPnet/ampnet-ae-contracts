@@ -1,4 +1,5 @@
 let util = require('../utils/util')
+let error = require('../utils/error')
 
 class Project {
 
@@ -15,25 +16,35 @@ class Project {
         let cap = util.eurToToken(this.project.investmentCap)
         let endsAt = this.project.endsAt
 
+        console.log("Deploying Project contract")
         this.compiledProject = await this.client.contractCompile(this.contractSource)
         this.deployedProject = await this.compiledProject.deploy({
             initState: `(${this.orgAddress}, ${minPerUser}, ${maxPerUser}, ${cap}, ${endsAt})`
-        })
+        }).catch(error.decode)
+        console.log(`Project deployed on ${this.address()}\n`)
     }
 
     async makeInvestment(client) {
-        return client.contractCall(this.compiledProject.bytecode, 'sophia', this.deployedProject.address, "invest")
+        let investor = await client.address()
+        console.log(`Confirm and execute investment from investor ${investor} in project ${this.address()}`)
+        util.executeWithStats(investor, async () => {
+            return client.contractCall(this.compiledProject.bytecode, 'sophia', this.deployedProject.address, "invest").catch(error.decode)
+        })
     }
     
     async getInvestment(client) {
-        let investment = await client.contractCall(this.compiledProject.bytecode, 'sophia', this.deployedProject.address, "get_investment")
+        let investor = await client.address()
+        console.log(`Fetching investment for investor ${investor} in project ${this.address()}`)
+        let investment = await client.contractCall(this.compiledProject.bytecode, 'sophia', this.deployedProject.address, "get_investment").catch(error.decode)
         let investmentDecoded = await investment.decode("(int)")
-        return util.tokenToEur(investmentDecoded)
+        let investmentInEur = util.tokenToEur(investmentDecoded)
+        console.log(`Fetched investment: $${investmentInEur}`)
+        return investmentInEur
     }
     
     async addInitialInvestors(client) {
-        console.log("Add initial investors - started.")
-        return util.executeWithStats(client, async () => {
+        console.log(`Adding initial investors for project at ${this.address()}`)
+        return util.executeWithStats(await client.address(), async () => {
             let initialInvestments = this.project.state.investments
             var investmentBatchesCount = initialInvestments.length
             for (var i = 0; i < investmentBatchesCount; i++) {
@@ -46,28 +57,41 @@ class Project {
     async addInvestors(client, investmentsList) {
         return client.contractCall(this.compiledProject.bytecode, 'sophia', this.deployedProject.address, "add_investments", {
             args: `(${investmentsList})`
-        })
+        }).catch(error.decode)
     }
     
     async startRevenueSharesPayout(amount) {
+        console.log(`Starting revenue share payout with amount $${amount} for project at ${this.address()} `)
         let tokenAmount = util.eurToToken(amount)
-        return this.deployedProject.call("start_revenue_shares_payout", {
-            args: `(${tokenAmount})`
+        return util.executeWithStats(this.owner(), async () => {
+            return this.deployedProject.call("start_revenue_shares_payout", {
+                args: `(${tokenAmount})`
+            }).catch(error.decode)
         })
     }
     
     async payoutRevenueShares() {
-        return this.deployedProject.call("payout_revenue_shares")
+        console.log(`Paying out revenue shares to next bacth of investors for project at ${this.address()}`)
+        return util.executeWithStats(this.owner(), async () => {
+            return this.deployedProject.call("payout_revenue_shares").catch(error.decode)
+        })
     }
 
     async isCompletelyFunded() {
+        console.log(`Fetching isFunded status for project at ${this.address()}`)
         let funded = await this.deployedProject.call("is_completely_funded")
         let fundedDecoded = await funded.decode("(bool)")
-        return !!fundedDecoded.value
+        let fundedStatus = !!fundedDecoded.value
+        console.log(`Project funded: ${fundedStatus}\n`)
+        return fundedStatus
     }
 
     address() {
         return util.decodeAddress(this.deployedProject.address)
+    }
+
+    owner() {
+        return this.deployedProject.owner
     }
 }
 

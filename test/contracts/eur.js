@@ -6,22 +6,32 @@ class Eur {
     }
 
     async mint(address, amount) {
-        let tokenAmount = util.eurToToken(amount)
-        return deployedContract.call("mint", {
-            args: `(${address}, ${tokenAmount})`
+        console.log(`Minting $${amount} to wallet ${address}`)
+        return util.executeWithStats(this.owner(), async () => {
+            let tokenAmount = util.eurToToken(amount)
+            return deployedContract.call("mint", {
+                args: `(${address}, ${tokenAmount})`
+            }).catch(error.decode)
         })
     }
 
     async getBalance(address) {
+        console.log(`Fetching balance for wallet ${address}`)
         let balance = await deployedContract.call("balance_of", {
 			args: `(${address})`
-        })
+        }).catch(error.decode)
         let balanceDecoded = await balance.decode("(int)")
-        return util.tokenToEur(balanceDecoded)
+        let balanceInEur = util.tokenToEur(balanceDecoded)
+        console.log(`Fetched balance: $${balanceInEur}`)
+        return balanceInEur
     }
 
     address() {
         return util.decodeAddress(this.deployedContract.address)
+    }
+
+    owner() {
+        return this.deployedContract.owner
     }
 }
 
