@@ -16,6 +16,7 @@
   "devDependencies": {
     "big-number": "^2.0.0",
     "from-exponential": "^1.0.0",
-    "numeral": "^2.0.6"
+    "numeral": "^2.0.6",
+    "performance-now": "^2.1.0"
   }
 }

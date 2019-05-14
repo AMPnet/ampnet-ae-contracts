@@ -1,4 +1,5 @@
 let util = require('../utils/util')
+let error = require('../utils/error')
 
 class Cooperative {
 
@@ -10,20 +11,21 @@ class Cooperative {
         console.log(`Register wallet ${address}`)
         let tx = await this.deployedContract.call("add_wallet", {
             args: `(${address})`
-        })
-        console.log(`Wallet ${address} registered.\n Tx cost: `)
-        return this.deployedContract.call("add_wallet", {
-            args: `(${address})`
-        })
+        }).catch(error.decode)
+        console.log(`Wallet ${address} registered.\n Tx cost: ${util.aeonToDollar}`)
+        return tx
     }
 
     async registerWallets(addressList) {
         let count = addressList.length
+        console.log(`Register ${count} batches of wallets`)
         for (var i = 0; i < count; i++) {
+            console.log(`Registering batch ${i+1}.`)
             await this.deployedContract.call("add_wallets", {
                 args: `(${addressList[i]})`
             })
         }
+        console.log(`Batches registered.`)
     }
 
     address() {

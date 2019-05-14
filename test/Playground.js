@@ -7,6 +7,7 @@ const accountsInitializer = require("./init/accountsInitializer")
 const contractsInitializer = require("./init/contractsInitializer")
 const deployer = require("./deploy/deployer")
 
+const error = require("./utils/error")
 const Ae = require('@aeternity/aepp-sdk').Universal;
 
 describe("Playground", () => {
@@ -20,7 +21,8 @@ describe("Playground", () => {
     
   	before(async () => {
 		accounts = await accountsInitializer.initialize(wallets)
-		contracts = await contractsInitializer.initialize(accounts)
+        contracts = await contractsInitializer.initialize(accounts)
+        error.init(accounts.coop.client)
 	})
 
 	beforeEach(async () => {
@@ -32,9 +34,8 @@ describe("Playground", () => {
     ///////////// --------- TESTS ----------- ///////////
 
     it('Random test', async () => {
-        let address = await accounts.bob.address
-        let test = await coop.registerWallet(address).catch(logError)
-        
+        // let address = await accounts.bob.address
+        // let test = await coop.registerWallet(address)
     })
 
 })

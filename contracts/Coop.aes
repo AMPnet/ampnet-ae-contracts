@@ -17,7 +17,6 @@ contract Coop =
         put(state{ token = Some(token) })
 
     public stateful function add_wallet(wallet: address) =
-        abort("test message")
         only_owner()
         put(state{ activeWallets[wallet] = true })
 

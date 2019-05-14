@@ -33,19 +33,14 @@ class Project {
     
     async addInitialInvestors(client) {
         console.log("Add initial investors - started.")
-        let addr = await client.address()
-        let startingBalance = await client.balance(addr)
-
-        let initialInvestments = this.project.state.investments
-        var investmentBatchesCount = initialInvestments.length
-        for (var i = 0; i < investmentBatchesCount; i++) {
-            let investmentsList = initialInvestments[i]
-            await this.addInvestors(client, investmentsList)
-        }
-        console.log("Add initial investors - finished.")
-
-        let endingBalance = await client.balance(addr)
-        console.log("total revenue share payout cost", util.aeonToDollar(startingBalance - endingBalance))
+        return util.executeWithStats(client, async () => {
+            let initialInvestments = this.project.state.investments
+            var investmentBatchesCount = initialInvestments.length
+            for (var i = 0; i < investmentBatchesCount; i++) {
+                let investmentsList = initialInvestments[i]
+                await this.addInvestors(client, investmentsList)
+            }
+        })
     }
 
     async addInvestors(client, investmentsList) {
