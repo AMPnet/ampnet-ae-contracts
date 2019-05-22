@@ -1,4 +1,5 @@
 let util = require('../utils/util')
+let wallets = require('../init/accounts')
 let error = require('../utils/error')
 
 class Project {
@@ -18,6 +19,7 @@ class Project {
 
         console.log("Deploying Project contract")
         this.compiledProject = await this.client.contractCompile(this.contractSource)
+
         this.deployedProject = await this.compiledProject.deploy({
             initState: `(${this.orgAddress}, ${minPerUser}, ${maxPerUser}, ${cap}, ${endsAt})`
         }).catch(error.decode)
@@ -38,8 +40,36 @@ class Project {
         let investment = await client.contractCall(this.compiledProject.bytecode, 'sophia', this.deployedProject.address, "get_investment").catch(error.decode)
         let investmentDecoded = await investment.decode("(int)")
         let investmentInEur = util.tokenToEur(investmentDecoded)
-        console.log(`Fetched investment: $${investmentInEur}`)
+        console.log(`Fetched investment: $${investmentInEur}\n`)
         return investmentInEur
+    }
+
+    async getInvestments() {
+        console.log(`Fetching investors in project ${this.address()}`)
+        return util.executeWithStats(this.owner(), async () => {
+            let investors = await this.deployedProject.callStatic("get_investments")
+            let investorsDecoded = await investors.decode("(list((address, int)))")
+            let investorsArray = investorsDecoded.value
+            let count = investorsArray.length
+            var result = []
+            for(var i = 0; i < count; ++i) {
+                console.log(investorsArray[i])
+                result.push({
+                    investor: investorsArray[i][0],
+                    amount: investorsArray[i][1]
+                })
+            }
+            return result
+        })
+    }
+
+    async totalFundsRaised() {
+        console.log(`Fetching total funds raised for project ${this.address()}`)
+        let raised = await this.deployedProject.call("total_funds_raised")
+        let raisedDecoded = await raised.decode("int")
+        let raisedInEur = util.tokenToEur(raisedDecoded.value)
+        console.log(`Raised: $${raisedInEur}`)
+        return raisedInEur
     }
     
     async addInitialInvestors(client) {
@@ -48,6 +78,7 @@ class Project {
             let initialInvestments = this.project.state.investments
             var investmentBatchesCount = initialInvestments.length
             for (var i = 0; i < investmentBatchesCount; i++) {
+                console.log(`Adding batch ${i+1}`)
                 let investmentsList = initialInvestments[i]
                 await this.addInvestors(client, investmentsList)
             }
@@ -71,15 +102,23 @@ class Project {
     }
     
     async payoutRevenueShares() {
-        console.log(`Paying out revenue shares to next bacth of investors for project at ${this.address()}`)
+        console.log(`Paying out revenue shares for project at ${this.address()}`)
         return util.executeWithStats(this.owner(), async () => {
-            return this.deployedProject.call("payout_revenue_shares").catch(error.decode)
+            var shouldCallAgain
+            var batchCount = 1
+            do {
+                console.log(`Paying out batch ${batchCount}`)
+                let status = await this.deployedProject.call("payout_revenue_shares").catch(error.decode)
+                let statusDecoded = await status.decode("(bool)")
+                shouldCallAgain = !!(statusDecoded.value)
+                batchCount++
+            } while (shouldCallAgain)
         })
     }
 
     async isCompletelyFunded() {
         console.log(`Fetching isFunded status for project at ${this.address()}`)
-        let funded = await this.deployedProject.call("is_completely_funded")
+        let funded = await this.deployedProject.callStatic("is_completely_funded")
         let fundedDecoded = await funded.decode("(bool)")
         let fundedStatus = !!fundedDecoded.value
         console.log(`Project funded: ${fundedStatus}\n`)

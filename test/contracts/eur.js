@@ -1,4 +1,5 @@
 let util = require('../utils/util')
+let error = require('../utils/error')
 
 class Eur {
     constructor(deployedContract) {
@@ -9,7 +10,7 @@ class Eur {
         console.log(`Minting $${amount} to wallet ${address}`)
         return util.executeWithStats(this.owner(), async () => {
             let tokenAmount = util.eurToToken(amount)
-            return deployedContract.call("mint", {
+            return this.deployedContract.call("mint", {
                 args: `(${address}, ${tokenAmount})`
             }).catch(error.decode)
         })
@@ -17,7 +18,7 @@ class Eur {
 
     async getBalance(address) {
         console.log(`Fetching balance for wallet ${address}`)
-        let balance = await deployedContract.call("balance_of", {
+        let balance = await this.deployedContract.call("balance_of", {
 			args: `(${address})`
         }).catch(error.decode)
         let balanceDecoded = await balance.decode("(int)")

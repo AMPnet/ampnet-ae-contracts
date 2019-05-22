@@ -15,7 +15,8 @@ async function initialize(wallets) {
         internalUrl: config.internalHost,
         keypair: coopKeypair,
         nativeMode: true,
-        networkId: 'ae_devnet'
+        networkId: 'ae_devnet',
+        compilerUrl: config.compilerUrl
     })
 
     let eurKeypair = wallets[1]
@@ -26,7 +27,8 @@ async function initialize(wallets) {
         internalUrl: config.internalHost,
         keypair: eurKeypair,
         nativeMode: true,
-        networkId: 'ae_devnet'
+        networkId: 'ae_devnet',
+        compilerUrl: config.compilerUrl
     })
 
     let bobKeypair = wallets[2]
@@ -37,7 +39,8 @@ async function initialize(wallets) {
         internalUrl: config.internalHost,
         keypair: bobKeypair,
         nativeMode: true,
-        networkId: 'ae_devnet'
+        networkId: 'ae_devnet',
+        compilerUrl: config.compilerUrl
     })
 
     let aliceKeypair = wallets[3]
@@ -48,7 +51,8 @@ async function initialize(wallets) {
         internalUrl: config.internalHost,
         keypair: aliceKeypair,
         nativeMode: true,
-        networkId: 'ae_devnet'
+        networkId: 'ae_devnet',
+        compilerUrl: config.compilerUrl
     })
 
     mainClient = coopClient

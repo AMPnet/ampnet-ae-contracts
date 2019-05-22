@@ -54,7 +54,7 @@ contract Project =
           payoutInProcess = false,
           revenueToSplit = 0,
           nextInvestorPayoutIndex = 0,
-          revenue_mint_batch_size = 50 }   // rethink about this constant (what value should it be? can we change it afterwards? etc..)
+          revenue_mint_batch_size = 10 }   // rethink about this constant (what value should it be? can we change it afterwards? etc..)
     
     public stateful function add_investments(investmentsList: list((address, int))) =
         require(
@@ -113,7 +113,7 @@ contract Project =
             payoutInProcess = true,
             nextInvestorPayoutIndex = 0 })
     
-    public stateful function payout_revenue_shares() =
+    public stateful function payout_revenue_shares() : bool =
         require(
             only_organization_admin(),
             "Only organization owner can payout revenue shares batch.")
@@ -149,12 +149,17 @@ contract Project =
             put(state{ nextInvestorPayoutIndex = toIndex + 1 })
         
         recursive_revenue_batch_payout(fromIndex, toIndex, revenue)
+        state.payoutInProcess
 
     public function get_investment() : int = state.investments[Call.caller = 0]
+
+    public function get_investments() : list((address, int)) = Map.to_list(state.investments)
 
     public function get_investors() : list((int, address)) = Map.to_list(state.investors)
 
     public function has_funding_expired() : bool = Chain.timestamp > state.endsAt
+
+    public function total_funds_raised() : int = state.totalFundsRaised
 
     public function is_completely_funded() : bool = state.totalFundsRaised == state.investmentCap
 

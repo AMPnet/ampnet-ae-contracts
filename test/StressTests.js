@@ -18,12 +18,24 @@ describe("Stress tests", () => {
 	let coop
 	let eur
 
+	let numberOfInvestors = 6
+	let investorBatchSize = 1
+	let smallInvestment = 250
+	let mediumInvestment = 500
+	let largeInvestment = 750
+
 	let largeTestProjectWithInvestors = {
 		minInvestmentPerUser: 1,					// $1 min investment per user
 		maxInvestmentPerUser: 1000000,				// $1M max invesment per user
-		investmentCap: 15000000,					// $15M investment cap
+		investmentCap: 3000,					// $15M investment cap
 		endsAt: time.currentTimeWithDaysOffset(10), // 10 days period of crowdfunding process
-		state: generateInitialInvestors(300, 50, 25000, 50000, 75000) // 300 small-mid-large investors (in batches of 50)
+		state: generateInitialInvestors(
+			numberOfInvestors, 
+			investorBatchSize, 
+			smallInvestment, 
+			mediumInvestment, 
+			largeInvestment
+		)
 	}
 
 	/////////// ------ SETUP ------------ ///////////
@@ -56,12 +68,27 @@ describe("Stress tests", () => {
 		await proj.deploy()
 		await coop.registerWallet(proj.address())
 
-		// Add 300 investments which will fund project completely (only coop admin can add manually)
+		// Add 300 investments which will fund project completely (only coop admin can add manually).
+		// Also mint actual total investment on project wallet.
+		// NOTE: Only coop admin can execute these actions, could be useful for manual set-up
+		//       of partially funded projects migrating to our platform, or avoiding previous
+		//	     issues by deploying new project contracts and setting everything up. 
 		await proj.addInitialInvestors(accounts.coop.client)
+		await eur.mint(proj.address(), largeTestProjectWithInvestors.investmentCap)
 
 		// Check if project funded completely
 		let funded = await proj.isCompletelyFunded()
 		console.log("funded completely", funded)
+
+		// Suppose project generated $1M revenue. Payout shares to each investor
+		let revenue = 1000000
+		await eur.mint(proj.address(), revenue)
+		await proj.startRevenueSharesPayout(revenue)
+		await proj.payoutRevenueShares()
+
+		// Check paid revenue shares
+		let investors = await proj.getInvestments()
+		console.log("investors", investors)
 
 		// let investors = await proj.call("get_investors")
 		// let investorsDecoded = await investors.decode("(list((int, address)))")
@@ -110,6 +137,7 @@ describe("Stress tests", () => {
 	function generateInitialInvestors(amount, batchSize, min, avg, max) {
 		var investmentsList = []
 		var investorsList = []
+		var investorsSeparated = []
 		
 		for(var batchIndex = 0; batchIndex < amount / batchSize; batchIndex++) {
 			var i
@@ -134,6 +162,7 @@ describe("Stress tests", () => {
 				}
 				batch += `(${randAddress}, ${util.eurToToken(investment)})`
 				investors += randAddress
+				investorsSeparated.push(randAddress)
 			}
 			batch += "]"
 			investors += "]"
@@ -141,9 +170,12 @@ describe("Stress tests", () => {
 			investorsList.push(investors)
 		}
 	
+		console.log("investors separated", investorsSeparated)
+		
 		return {
 			investors: investorsList,
-			investments: investmentsList
+			investments: investmentsList,
+			investorsArray: investors
 		}
 	}
 
