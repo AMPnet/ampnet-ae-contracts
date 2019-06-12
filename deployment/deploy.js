@@ -14,39 +14,58 @@
  *  OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  *  PERFORMANCE OF THIS SOFTWARE.
  */
-const Ae = require('@aeternity/aepp-sdk').Universal
-const Crypto = require('@aeternity/aepp-sdk').Crypto
-const Deployer = require('forgae').Deployer;
-const gasLimit = 1000000;
+let Ae = require('@aeternity/aepp-sdk').Universal
+
+let fs = require('fs')
+let path = require('path')
 
 const deploy = async (network, privateKey) => {
 
-	/* Works as expected */
+	// Initialize Coop client and contract
 
-	let coopOwner = privateKey
-	let eurOwner = '7c6e602a94f30e4ea7edabe4376314f69ba7eaa2f355ecedb339df847b6f0d80575f81ffb0a297b7725dc671da0b1769b1fc5cbe45385c7b5ad1fc2eaf1d609d'
-
-	let coopDeployer = new Deployer(network, coopOwner)
-	let coop = await coopDeployer.deploy("./contracts/Coop.aes")
-
-	let eurDeployer = new Deployer(network, eurOwner)
-	let coopAddressDecoded = `0x${Crypto.decodeBase58Check(coop.address.split('_')[1]).toString('hex')}`
-	console.log(`coop address decoded: ${coopAddressDecoded}`)
-	let eur = await eurDeployer.deploy("./contracts/EUR.aes", gasLimit, `(${coopAddressDecoded})`) 
-
-	let eurAddressDecoded = `0x${Crypto.decodeBase58Check(eur.address.split('_')[1]).toString('hex')}`
-	console.log(`eur address decoded: ${eurAddressDecoded}`)
-
-	let result = await coop.call("setToken", {
-		args: `(${eurAddressDecoded})`
+	let coopClient = await Ae({
+        url: 'http://localhost:3001/',
+        internalUrl: 'http://localhost:3001/internal/',
+        keypair: {
+			"publicKey": "ak_fUq2NesPXcYZ1CcqBcGC3StpdnQw3iVxMA3YSeCNAwfN4myQk",
+			"secretKey": "7c6e602a94f30e4ea7edabe4376314f69ba7eaa2f355ecedb339df847b6f0d80575f81ffb0a297b7725dc671da0b1769b1fc5cbe45385c7b5ad1fc2eaf1d609d"
+		},
+        nativeMode: true,
+		networkId: 'ae_devnet',
+		compilerUrl: 'http://localhost:3080'
 	})
+	let coopSource = fs.readFileSync(path.join(__dirname, '..', 'contracts', 'Coop.aes')).toString('utf-8')
+	let coopContract = await coopClient.getContractInstance(coopSource)
+	
 
-	let balanceCall = await coop.call("balance_of", {
-		args: `(0x0)`
+	// Initialize EUR client and contract
+
+	let eurClient = await Ae({
+        url: 'http://localhost:3001/',
+        internalUrl: 'http://localhost:3001/internal/',
+        keypair: {
+			"publicKey": "ak_tWZrf8ehmY7CyB1JAoBmWJEeThwWnDpU4NadUdzxVSbzDgKjP",
+			"secretKey": "7fa7934d142c8c1c944e1585ec700f671cbc71fb035dc9e54ee4fb880edfe8d974f58feba752ae0426ecbee3a31414d8e6b3335d64ec416f3e574e106c7e5412"
+		},
+        nativeMode: true,
+		networkId: 'ae_devnet',
+		compilerUrl: 'http://localhost:3080'
 	})
-	let balanceCallDecoded = await balanceCall.decode("(int)")
+	let eurSource = fs.readFileSync(path.join(__dirname, '..', 'contracts', 'EUR.aes')).toString('utf-8')
+	let eurContract = await eurClient.getContractInstance(eurSource)
 
-	console.log(balanceCallDecoded)
+
+	// Deploy
+
+	let coop = await coopContract.deploy()
+	console.log(`Coop deployed at: ${coop.deployInfo.address}`)
+
+	let eur = await eurContract.deploy([coop.deployInfo.address])
+	console.log(`EUR deployed at: ${eur.deployInfo.address}`)
+
+	await coop.call('set_token', [eur.deployInfo.address])
+	console.log('EUR token registered in Coop contract')
+
 };
 
 module.exports = {

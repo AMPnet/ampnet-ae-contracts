@@ -18,7 +18,7 @@ contract EUR =
 
   private function lookup_by_address(k : address, m, v) = Map.lookup_default(k, m, v)
       
-  public function transfer_ownership(newOwner: address) =
+  public stateful function transfer_ownership(newOwner: address) =
     only_owner()
     put(state{ owner = newOwner })
 

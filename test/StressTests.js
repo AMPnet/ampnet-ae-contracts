@@ -171,7 +171,7 @@ describe("Stress tests", () => {
 		}
 	
 		console.log("investors separated", investorsSeparated)
-		
+
 		return {
 			investors: investorsList,
 			investments: investmentsList,

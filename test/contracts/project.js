@@ -48,15 +48,16 @@ class Project {
         console.log(`Fetching investors in project ${this.address()}`)
         return util.executeWithStats(this.owner(), async () => {
             let investors = await this.deployedProject.callStatic("get_investments")
-            let investorsDecoded = await investors.decode("(list((address, int)))")
+            let investorsDecoded = await investors.decode("(map(address, int))")
             let investorsArray = investorsDecoded.value
+            console.log("investorsArray", investorsArray)
             let count = investorsArray.length
             var result = []
             for(var i = 0; i < count; ++i) {
                 console.log(investorsArray[i])
                 result.push({
-                    investor: investorsArray[i][0],
-                    amount: investorsArray[i][1]
+                    investor: investorsArray[i].key.value.toString(16),
+                    amount: util.tokenToEur(investorsArray[i].val.value)
                 })
             }
             return result

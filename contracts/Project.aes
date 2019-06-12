@@ -153,7 +153,7 @@ contract Project =
 
     public function get_investment() : int = state.investments[Call.caller = 0]
 
-    public function get_investments() : list((address, int)) = Map.to_list(state.investments)
+    public function get_investments() : map(address, int) = state.investments
 
     public function get_investors() : list((int, address)) = Map.to_list(state.investors)
 
