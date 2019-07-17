@@ -1,5 +1,5 @@
 contract TokenInterface =
-    function balance_of : (address) => (int)
+    entrypoint balance_of : (address) => (int)
 
 contract Coop =
     record state = {
@@ -7,44 +7,40 @@ contract Coop =
         activeWallets              : map(address, bool),
         token                      : option(TokenInterface) }
     
-    public stateful function init() : state =
+    stateful entrypoint init() : state =
         { owner = Call.caller,
           activeWallets = {},
           token = None }
     
-    public stateful function set_token(token: TokenInterface) =
+    stateful entrypoint set_token(token: TokenInterface) =
         only_owner()
         put(state{ token = Some(token) })
 
-    public stateful function add_wallet(wallet: address) =
+    stateful entrypoint add_wallet(wallet: address) =
         only_owner()
         put(state{ activeWallets[wallet] = true })
 
-    public stateful function add_wallets(wallets: list(address)) =
+    stateful entrypoint add_wallets(wallets: list(address)) =
         only_owner()
         recursive_wallets_add(wallets)
 
-    public function is_wallet_active(wallet: address) : bool = state.activeWallets[wallet]
+    entrypoint is_wallet_active(wallet: address) : bool = state.activeWallets[wallet]
 
-    public function owner() : address = state.owner
+    entrypoint owner() : address = state.owner
     
-    public function timestamp() : int = Chain.timestamp
+    entrypoint timestamp() : int = Chain.timestamp
 
-    public function token() : TokenInterface = 
+    entrypoint token() : TokenInterface = 
         switch (state.token)
             None => abort("Token not initalized!")
             Some(token) => token
 
-    private stateful function recursive_wallets_add(wallets: list(address)) : int =
+    stateful function recursive_wallets_add(wallets: list(address)) : int =
         switch (wallets)
             wallet::wallets' =>
                 put(state{ activeWallets[wallet] = true })
                 1 + recursive_wallets_add(wallets')
             [] => 0
 
-    private function require(b : bool, err : string) =
-        if(!b) 
-            abort(err)
-
-    private function only_owner() =
+    function only_owner() =
         require(Call.caller == state.owner, "Only owner can make this action!")

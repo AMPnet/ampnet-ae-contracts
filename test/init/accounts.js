@@ -8,7 +8,7 @@ function main() { return mainClient }
 
 async function initialize(wallets) {
     let coopKeypair = wallets[0]
-    let coopAddress = util.decodeAddress(wallets[0].publicKey)
+    let coopAddress = wallets[0].publicKey
     let coopPrivateKey = wallets[0].secretKey
     let coopClient = await Ae({
         url: config.host,
@@ -20,7 +20,7 @@ async function initialize(wallets) {
     })
 
     let eurKeypair = wallets[1]
-    let eurAddress = util.decodeAddress(wallets[1].publicKey)
+    let eurAddress = wallets[1].publicKey
     let eurPrivateKey = wallets[1].secretKey
     let eurClient = await Ae({
         url: config.host,
@@ -32,7 +32,7 @@ async function initialize(wallets) {
     })
 
     let bobKeypair = wallets[2]
-    let bobAddress = util.decodeAddress(wallets[2].publicKey)
+    let bobAddress = wallets[2].publicKey
     let bobPrivateKey = wallets[2].secretKey
     let bobClient = await Ae({
         url: config.host,
@@ -44,7 +44,7 @@ async function initialize(wallets) {
     })
 
     let aliceKeypair = wallets[3]
-    let aliceAddress = util.decodeAddress(wallets[3].publicKey)
+    let aliceAddress = wallets[3].publicKey
     let alicePrivateKey = wallets[3].secretKey
     let aliceClient = await Ae({
         url: config.host,

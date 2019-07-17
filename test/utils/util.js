@@ -13,6 +13,10 @@ async function executeWithStats(wallet, func) {
     return result
 }
 
+function enforceAkPrefix(address) {
+    return address.replace("ct_", "ak_")
+}
+
 function decodeAddress(address) {
     const decoded = Crypto.decodeBase58Check(address.split('_')[1]).toString('hex')
     return `0x${decoded}`
@@ -36,5 +40,6 @@ Object.assign(exports, {
     decodeAddress,
     eurToToken,
     tokenToEur,
-    executeWithStats
+    executeWithStats,
+    enforceAkPrefix
 })

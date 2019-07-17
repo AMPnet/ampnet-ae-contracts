@@ -1,17 +1,17 @@
 contract TokenInterface =
-    function allowance : (address, address) => int
-    function approve : (address, int) => bool
-    function transfer : (address, int) => bool
-    function transfer_from : (address, address, int) => bool
+    entrypoint allowance : (address, address) => int
+    entrypoint approve : (address, int) => bool
+    entrypoint transfer : (address, int) => bool
+    entrypoint transfer_from : (address, address, int) => bool
 
 contract CoopInterface =
-    function token : () => TokenInterface
-    function owner : () => address
+    entrypoint token : () => TokenInterface
+    entrypoint owner : () => address
 
 contract OrgInterface =
-    function is_verified : () => bool
-    function coop : () => CoopInterface
-    function owner : () => address
+    entrypoint is_verified : () => bool
+    entrypoint coop : () => CoopInterface
+    entrypoint owner : () => address
 
 contract Project =
     record state = {
@@ -28,7 +28,7 @@ contract Project =
         nextInvestorPayoutIndex    : int,
         revenue_mint_batch_size    : int }
 
-    public stateful function init(
+    stateful entrypoint init(
         organization: OrgInterface, 
         minInvestmentPerUser: int,
         maxInvestmentPerUSer: int,
@@ -56,7 +56,7 @@ contract Project =
           nextInvestorPayoutIndex = 0,
           revenue_mint_batch_size = 10 }   // rethink about this constant (what value should it be? can we change it afterwards? etc..)
     
-    public stateful function add_investments(investmentsList: list((address, int))) =
+    stateful entrypoint add_investments(investmentsList: list((address, int))) =
         require(
             Call.caller == state.organization.coop().owner(),
             "Only Cooperative can manually add new investments!")
@@ -71,7 +71,7 @@ contract Project =
 
         recursive_investment_add(investmentsList)
 
-    public stateful function invest() =
+    stateful entrypoint invest() =
         let token = state.organization.coop().token()
         let amount = token.allowance(Call.caller, Contract.address)
         
@@ -80,7 +80,7 @@ contract Project =
         persist_investment(Call.caller, amount)
 
 
-    public stateful function withdraw(tokenIssuer: address, amount: int) =
+    stateful entrypoint withdraw(tokenIssuer: address, amount: int) =
         require(
             is_completely_funded(),
             "Project investment cap not reached! Cannot withdraw funds.")
@@ -91,7 +91,7 @@ contract Project =
 
         state.organization.coop().token().approve(tokenIssuer, amount)
     
-    public stateful function start_revenue_shares_payout(revenue: int) =
+    stateful entrypoint start_revenue_shares_payout(revenue: int) =
         require(
             only_organization_admin(),
             "Only organization owner can initiate revenue shares payout.")
@@ -113,7 +113,7 @@ contract Project =
             payoutInProcess = true,
             nextInvestorPayoutIndex = 0 })
     
-    public stateful function payout_revenue_shares() : bool =
+    stateful entrypoint payout_revenue_shares() : bool =
         require(
             only_organization_admin(),
             "Only organization owner can payout revenue shares batch.")
@@ -151,25 +151,21 @@ contract Project =
         recursive_revenue_batch_payout(fromIndex, toIndex, revenue)
         state.payoutInProcess
 
-    public function get_investment() : int = state.investments[Call.caller = 0]
+    entrypoint get_investment() : int = state.investments[Call.caller = 0]
 
-    public function get_investments() : map(address, int) = state.investments
+    entrypoint get_investments() : map(address, int) = state.investments
 
-    public function get_investors() : list((int, address)) = Map.to_list(state.investors)
+    entrypoint get_investors() : list((int, address)) = Map.to_list(state.investors)
 
-    public function has_funding_expired() : bool = Chain.timestamp > state.endsAt
+    entrypoint has_funding_expired() : bool = Chain.timestamp > state.endsAt
 
-    public function total_funds_raised() : int = state.totalFundsRaised
+    entrypoint total_funds_raised() : int = state.totalFundsRaised
 
-    public function is_completely_funded() : bool = state.totalFundsRaised == state.investmentCap
+    entrypoint is_completely_funded() : bool = state.totalFundsRaised == state.investmentCap
 
-    private function only_organization_admin() : bool = Call.caller == state.organization.owner()
+    function only_organization_admin() : bool = Call.caller == state.organization.owner()
 
-    private function require(b : bool, err : string) =
-        if(!b) 
-            abort(err)
-
-    private stateful function recursive_revenue_batch_payout(
+    stateful function recursive_revenue_batch_payout(
         currentInvestorIndex: int, 
         lastInvestorIndex: int,
         revenue: int) =
@@ -183,7 +179,7 @@ contract Project =
             recursive_revenue_batch_payout(currentInvestorIndex + 1, lastInvestorIndex, revenue)
 
 
-    private stateful function recursive_investment_add(investments: list((address, int))) : int =
+    stateful function recursive_investment_add(investments: list((address, int))) : int =
         switch (investments)
             investment::investments' =>
                 switch (investment)
@@ -194,7 +190,7 @@ contract Project =
             [] => 0
             
 
-    private function check_investment_preconditions(investor: address, amount: int) =
+    function check_investment_preconditions(investor: address, amount: int) =
         let usersPreviousTotalInvestment = state.investments[investor = 0]
         let usersNewTotalInvestment = usersPreviousTotalInvestment + amount
         let projectNewTotalInvestment = state.totalFundsRaised + amount
@@ -228,7 +224,7 @@ contract Project =
             !has_funding_expired(),
             "Project funding has ended.")
 
-    private stateful function persist_investment(investor: address, amount: int) = 
+    stateful function persist_investment(investor: address, amount: int) = 
         if (!Map.member(investor, state.investments))
             let newInvestorIndex = Map.size(state.investors)
             put(state{ investors[newInvestorIndex] = investor })

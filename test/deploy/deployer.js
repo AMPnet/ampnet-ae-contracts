@@ -1,29 +1,27 @@
 const util = require("../utils/util")
 const error = require("../utils/error")
+const contracts = require('../init/contracts')
+async function deploy(accounts) {
 
-async function deploy(contracts) {
-    console.log("Deploying Coop")
-    let coop = await contracts.coop.compiled.deploy().catch(error.decode)
-    console.log(coop)
-    let coopAddress = util.decodeAddress(coop.address)
-    console.log(`Coop deployed on ${coopAddress}\n`)
+    let coopInstance = await accounts.coop.client.getContractInstance(contracts.coopSource)
+    let eurInstance = await accounts.eur.client.getContractInstance(contracts.eurSource)
+
+
+    console.log("Deploying Coop")   
+    let coop = await coopInstance.deploy()
+    console.log(`Coop deployed on ${coop.address}\n`)
 
     console.log("Deploying EUR token")
-    let eur = await contracts.eur.compiled.deploy({
-        initState: `(${coopAddress})`
-    }).catch(error.decode)
-    let eurAddress = util.decodeAddress(eur.address)
-    console.log(`EUR token deployed on ${eurAddress}\n`)
+    let eur = await eurInstance.deploy([coop.address])
+    console.log(`EUR token deployed on ${eur.address}\n`)
     
     console.log("Registering EUR token on Coop contract")
-    await coop.call("set_token", {
-        args: `(${eurAddress})`
-    }).catch(error.decode)
+    await coopInstance.call("set_token", [eur.address])
     console.log("EUR token registered\n")
 
     return {
-        coop: coop,
-        eur: eur
+        coop: coopInstance,
+        eur: eurInstance
     }
 }
 

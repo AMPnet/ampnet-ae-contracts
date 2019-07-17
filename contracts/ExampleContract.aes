@@ -1,5 +1,0 @@
-contract ExampleContract =
-  type state = ()
-
-  public function test(test : map(address, int)) : map(address, int) =
-    test

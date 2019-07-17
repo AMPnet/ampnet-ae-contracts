@@ -1,5 +1,5 @@
 contract CoopInterface =
-    function is_wallet_active : (address) => bool
+    entrypoint is_wallet_active : (address) => bool
 
 contract EUR =
   record state = {
@@ -9,45 +9,45 @@ contract EUR =
     allowed          : map((address,address), int),
     coop             : CoopInterface }
 
-  public stateful function init(coop : CoopInterface) : state =
+  stateful entrypoint init(coop : CoopInterface) : state =
     { owner       = Call.caller,
       totalSupply = 0,
       balances    = {},
       allowed     = {},
       coop        = coop }
 
-  private function lookup_by_address(k : address, m, v) = Map.lookup_default(k, m, v)
+  function lookup_by_address(k : address, m, v) = Map.lookup_default(k, m, v)
       
-  public stateful function transfer_ownership(newOwner: address) =
+  stateful entrypoint transfer_ownership(newOwner: address) =
     only_owner()
     put(state{ owner = newOwner })
 
-  public function total_supply() : int = state.totalSupply
+  entrypoint total_supply() : int = state.totalSupply
 
-  public function balance_of(who: address) : int = lookup_by_address(who, state.balances, 0)
+  entrypoint balance_of(who: address) : int = lookup_by_address(who, state.balances, 0)
 
-  public function allowance(owner: address, spender: address) : int = Map.lookup_default((owner, spender), state.allowed, 0)
+  entrypoint allowance(owner: address, spender: address) : int = Map.lookup_default((owner, spender), state.allowed, 0)
 
-  public stateful function transfer(to: address, value: int) : bool =
+  stateful entrypoint transfer(to: address, value: int) : bool =
     only_coop_user(Call.caller)
     only_coop_user(to)
     _transfer(Call.caller, to, value)
 
-  public stateful function approve(spender: address, value: int) : bool = 
+  stateful entrypoint approve(spender: address, value: int) : bool = 
     only_coop_user(Call.caller)
     only_coop_user(spender)
 
     require(value > 0, "Value is sub zero")
-    require(spender != #0, "Invalid spender address")
+    // require(spender != #0, "Invalid spender address")
 
     put(state{ allowed[(Call.caller, spender)] = value })
 
     true
 
-  private stateful function _transfer(from: address, to: address, value: int) : bool =
+  stateful function _transfer(from: address, to: address, value: int) : bool =
     require(value > 0, "Value is sub zero")
     require(value =< balance_of(from), "Not enough balance")
-    require(to != #0, "Invalid address")
+    // require(to != #0, "Invalid address")
 
     put(state{
       balances[from] = balance_of(from) - value,
@@ -55,7 +55,7 @@ contract EUR =
 
     true
 
-  public stateful function transfer_from(from: address, to: address, value: int) : bool =
+  stateful entrypoint transfer_from(from: address, to: address, value: int) : bool =
     only_coop_user(Call.caller)
     only_coop_user(from)
     only_coop_user(to)
@@ -67,33 +67,33 @@ contract EUR =
 
     true
 
-  public stateful function increase_allowance(spender: address, addedValue: int) : bool =
-    require(spender != #0, "Invalid address")
+  stateful entrypoint increase_allowance(spender: address, addedValue: int) : bool =
+    // require(spender != #0, "Invalid address")
     only_coop_user(Call.caller)
     only_coop_user(spender)
     put(state{ allowed[(Call.caller, spender)] = state.allowed[(Call.caller, spender)] + addedValue })
 
     true
 
-  public stateful function decrease_allowance(spender: address, subtractedValue: int) : bool =
-    require(spender != #0, "Invalid address")
+  stateful entrypoint decrease_allowance(spender: address, subtractedValue: int) : bool =
+    // require(spender != #0, "Invalid address")
     only_coop_user(Call.caller)
     only_coop_user(spender)
     put(state{ allowed[(Call.caller, spender)] = state.allowed[(Call.caller, spender)] - subtractedValue })
 
     true
 
-  public stateful function mint(account: address, value: int) : bool =
+  stateful entrypoint mint(account: address, value: int) : bool =
     only_owner()
     only_coop_user(account)
-    require(account != #0, "Invalid address")
+    // require(account != #0, "Invalid address")
 
     put(state{ totalSupply = state.totalSupply + value,
           balances[account] = balance_of(account) + value })
 
     true
 
-  public stateful function burn(account: address, value: int) : bool =
+  stateful entrypoint burn(account: address, value: int) : bool =
     only_owner()
     only_coop_user(account)
     require(state.allowed[(account, Call.caller)] >= value, "Value to be burned is bigger than allowed.")
@@ -104,12 +104,8 @@ contract EUR =
 
     true
 
-  private function require(b : bool, err : string) =
-    if(!b) 
-      abort(err)
-
-  private function only_owner() =
+  function only_owner() =
       require(Call.caller == state.owner, "Only owner can mint!")
 
-  private function only_coop_user(wallet: address) =
+  function only_coop_user(wallet: address) =
     require(state.coop.is_wallet_active(wallet), "Only registered Cooperative user can make this action!")

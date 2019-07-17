@@ -56,14 +56,14 @@ const deploy = async (network, privateKey) => {
 
 
 	// Deploy
-
+	
 	let coop = await coopContract.deploy()
-	console.log(`Coop deployed at: ${coop.deployInfo.address}`)
+	console.log(`Coop deployed at: ${coop.address}`)
+	
+	let eur = await eurContract.deploy([coop.address])
+	console.log(`EUR deployed at: ${eur.address}`)
 
-	let eur = await eurContract.deploy([coop.deployInfo.address])
-	console.log(`EUR deployed at: ${eur.deployInfo.address}`)
-
-	await coop.call('set_token', [eur.deployInfo.address])
+	await coopContract.call('set_token', [eur.address])
 	console.log('EUR token registered in Coop contract')
 
 };

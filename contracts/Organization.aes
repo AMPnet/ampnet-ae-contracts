@@ -1,5 +1,5 @@
 contract CoopInterface = 
-    function is_wallet_active : (address) => bool
+    entrypoint is_wallet_active : (address) => bool
 
 contract Organization =
     record state = {
@@ -7,7 +7,7 @@ contract Organization =
         owner      : address,
         members    : map(address, bool) }
     
-    public stateful function init(coop: CoopInterface) : state =
+    stateful entrypoint init(coop: CoopInterface) : state =
         require(
             coop.is_wallet_active(Call.caller),
             "Cannot create Organization, caller not registered Cooperative user.")
@@ -15,13 +15,13 @@ contract Organization =
           owner = Call.caller, 
           members = {} }
     
-    public stateful function add_member(member: address) =
+    stateful entrypoint add_member(member: address) =
         only_owner()
         only_active_organization()
         only_active_wallet(member)
         put(state{ members[member] = false })
     
-    public stateful function confirm_membership() =
+    stateful entrypoint confirm_membership() =
         only_active_organization()
         only_active_wallet(Call.caller)
 
@@ -34,25 +34,21 @@ contract Organization =
                 else
                     put(state{ members[Call.caller] = true })
     
-    public function owner() : address = state.owner
+    entrypoint owner() : address = state.owner
 
-    public function coop() : CoopInterface = state.coop
+    entrypoint coop() : CoopInterface = state.coop
 
-    public function is_verified() : bool = state.coop.is_wallet_active(Contract.address)
+    entrypoint is_verified() : bool = state.coop.is_wallet_active(Contract.address)
 
-    private function require(b : bool, err : string) =
-        if(!b) 
-            abort(err)
-    
-    private function only_owner() =
+    function only_owner() =
         require(Call.caller == state.owner, "Only organization owner can make this action!")
 
-    private function only_active_wallet(wallet: address) =
+    function only_active_wallet(wallet: address) =
         require(
             state.coop.is_wallet_active(wallet),
             "Only registered Cooperative member can make this action.")
     
-    private function only_active_organization() =
+    function only_active_organization() =
         require(
             state.coop.is_wallet_active(Contract.address),
             "Organization must have active wallet!")

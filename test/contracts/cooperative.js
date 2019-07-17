@@ -3,16 +3,14 @@ let error = require('../utils/error')
 
 class Cooperative {
 
-    constructor(deployedContract) {
-        this.deployedContract = deployedContract
+    constructor(contractInstance) {
+        this.contractInstance = contractInstance
     }
 
     async registerWallet(address) {
         console.log(`Registering wallet ${address}`)
         return await util.executeWithStats(this.owner(), async () => {
-           return await this.deployedContract.call("add_wallet", {
-                args: `(${address})`
-            }).catch(error.decode)
+           return await this.contractInstance.call("add_wallet", [ util.enforceAkPrefix(address) ], {}).catch(error.decode)
         })
     }
 
@@ -29,12 +27,19 @@ class Cooperative {
         })
     }
 
+    async isWalletActive(address) {
+        console.log(`Received request to check is wallet ${address} active`)
+        let status = await this.contractInstance.call("is_wallet_active", [ util.enforceAkPrefix(address) ], { callStatic: true })
+        let statusDecoded = await status.decode()
+        return statusDecoded
+    }
+
     address() {
-        return util.decodeAddress(this.deployedContract.address)
+        return this.contractInstance.deployInfo.address
     }
 
     owner() {
-        return this.deployedContract.owner
+        return this.contractInstance.deployInfo.owner
     }
 
 }
