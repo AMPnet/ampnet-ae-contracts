@@ -15,14 +15,16 @@ class Cooperative {
     }
 
     async registerWallets(addressList) {
-        let count = addressList.length
-        console.log(`Registering ${count} batches of wallets`)
+        let addressListSize = addressList.length
+        let batchSize = 50
+        let batchCount = Math.ceil(addressListSize / batchSize)
+        console.log(`Registering ${addressListSize} batches of wallets`)
         await util.executeWithStats(this.owner(), async () => {
-            for (var i = 0; i < count; i++) {
+            for (var i = 0; i < batchCount; i++) {
                 console.log(`Registering batch ${i+1}.`)
-                await this.deployedContract.call("add_wallets", {
-                    args: `(${addressList[i]})`
-                }).catch(error.decode)
+                let position = i * batchSize
+                let addressBatch = addressList.slice(position, Math.min(addressListSize, position + batchSize))
+                await this.contractInstance.call("add_wallets", [ addressBatch ]).catch(error.decode)
             }
         })
     }

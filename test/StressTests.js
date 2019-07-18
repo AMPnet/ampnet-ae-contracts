@@ -4,15 +4,10 @@ const Organization = require("./contracts/organization").Organization
 const Project = require("./contracts/project").Project
 
 const accountsInitializer = require("./init/accounts")
-const contractsInitializer = require("./init/contracts")
 const deployer = require("./deploy/deployer")
 
-const randomstring = require('randomstring')
 const util = require('./utils/util')
 const time = require('./utils/time')
-
-let randomBytes = require('random-bytes')
-let bs58 = require('bs58check')
 
 describe("Stress tests", () => {
 
@@ -20,26 +15,6 @@ describe("Stress tests", () => {
 	let contracts
 	let coop
 	let eur
-
-	let numberOfInvestors = 6
-	let investorBatchSize = 1
-	let smallInvestment = 250
-	let mediumInvestment = 500
-	let largeInvestment = 750
-
-	let largeTestProjectWithInvestors = {
-		minInvestmentPerUser: 1,					// $1 min investment per user
-		maxInvestmentPerUser: 1000000,				// $1M max invesment per user
-		investmentCap: 3000,					// $15M investment cap
-		endsAt: time.currentTimeWithDaysOffset(10), // 10 days period of crowdfunding process
-		state: generateInitialInvestors(
-			numberOfInvestors, 
-			investorBatchSize, 
-			smallInvestment, 
-			mediumInvestment, 
-			largeInvestment
-		)
-	}
 
 	/////////// ------ SETUP ------------ ///////////
     
@@ -55,9 +30,11 @@ describe("Stress tests", () => {
 
 	///////////// --------- TESTS ----------- ///////////
 
-	it('Should be able to process 300 investors and payout revenue shares', async () => {
-		// Regiter all 300 investor wallets + Bob's (org and project admin)
-		// await coop.registerWallets(largeTestProjectWithInvestors.state.investors)
+	it('Should be able to process 150 investors and payout revenue shares', async () => {
+		let projData = await getHeavyProject()
+
+		// Regiter all 150 investor wallets + Bob's (org and project admin)
+		await coop.registerWallets(projData.state.investors)
 		await coop.registerWallet(accounts.bob.address)
 
 		// Bob creates organization, admin approves by activating wallet
@@ -66,35 +43,31 @@ describe("Stress tests", () => {
 		await coop.registerWallet(org.address())
 
 		// Bob creates project under his organization, admin approves by activating project wallet
-		let proj = new Project(org.address(), accounts.bob.client, largeTestProjectWithInvestors)
+		let proj = new Project(org.address(), accounts.bob.client, projData)
 		await proj.deploy()
 		await coop.registerWallet(proj.address())
 
-		// Add 300 investments which will fund project completely (only coop admin can add manually).
+		// Add investments which will fund project completely (only coop admin can add manually).
 		// Also mint actual total investment on project wallet.
 		// NOTE: Only coop admin can execute these actions, could be useful for manual set-up
 		//       of partially funded projects migrating to our platform, or avoiding previous
 		//	     issues by deploying new project contracts and setting everything up. 
 		await proj.addInitialInvestors(accounts.coop.client)
-		await eur.mint(proj.address(), largeTestProjectWithInvestors.investmentCap)
+		await eur.mint(proj.address(), projData.investmentCap)
 
 		// Check if project funded completely
 		let funded = await proj.isCompletelyFunded()
 		console.log("funded completely", funded)
 
-		// Check if project wallet is active
-		let active = await coop.isWalletActive(proj.address())
-		console.log("project wallet active", active)
-
 		// Suppose project generated $1M revenue. Payout shares to each investor
-		// let revenue = 1000000
-		// await eur.mint(proj.address(), revenue)
-		// await proj.startRevenueSharesPayout(revenue)
-		// await proj.payoutRevenueShares()
+		let revenue = 1000000
+		await eur.mint(proj.address(), revenue)
+		await proj.startRevenueSharesPayout(revenue)
+		await proj.payoutRevenueShares()
 
 		// Check paid revenue shares
-		// let investors = await proj.getInvestments()
-		// console.log("investors", investors)
+		let investors = await proj.getInvestments()
+		console.log("investors", investors)
 
 		// let investors = await proj.call("get_investors")
 		// let investorsDecoded = await investors.decode("(list((int, address)))")
@@ -129,6 +102,33 @@ describe("Stress tests", () => {
 
 	/////////// ------ HELPER FUNCTIONS --------- ////////
 
+	async function getHeavyProject() {
+		let investmentCap = 3000								// 3k EUR investment cap
+		let minInvestment = 1									// 1 EUR min per user investment
+		let maxInvestment = 3000								// 3k EUR max per user investment
+		let deadline = time.currentTimeWithDaysOffset(10)		// project expires in 10 days
+
+		let numberOfInvestors = 150
+		let smallInvestment = 10
+		let mediumInvestment = 20
+		let largeInvestment = 30
+
+		let investmentRecord = await generateInvestors(
+			numberOfInvestors, 
+			smallInvestment, 
+			mediumInvestment, 
+			largeInvestment
+		)
+
+		return {
+			minInvestmentPerUser: minInvestment,
+			maxInvestmentPerUser: maxInvestment,
+			investmentCap: investmentCap,
+			endsAt: deadline,
+			state: investmentRecord
+		}
+	}
+
 	/**
 	 * Generates initial investors list of size - amount.
 	 * Divides investors in three categories: small, medium, large.
@@ -139,56 +139,27 @@ describe("Stress tests", () => {
 	 * 
 	 * Used for stress testing on large groups of investors (2-3k ppl).
 	 */
-
-	async function generateInitialInvestors(amount, batchSize, min, avg, max) {
-		var investmentssList = []
-
+	async function generateInvestors(amount, min, avg, max) {
 		var investmentsList = []
 		var investorsList = []
-		var investorsSeparated = []
-		
-		for(var batchIndex = 0; batchIndex < amount / batchSize; batchIndex++) {
-			var i
-			let from = batchIndex * batchSize
-			let to = (batchIndex + 1) * batchSize 
-			var batch = "["
-			var investors = "["
-			for (i = from; i < to; i++) {
-				let investment
-	
-				if (i < amount / 3) investment = min
-				else if (i < 2 * amount / 3) investment = avg
-				else investment = max
-			
-				let randAddresss = await randomBytes(32)
-				let randAddressEncoded = 'ak_' + bs58.encode(randAddress)
 
-				let randAddress = "0x" + randomstring.generate({
-					length: 64,
-					charset: 'hex'
-				})
-				if (i > from) {
-					batch += ", "
-					investors += ", "
-				}
-				batch += `(${randAddress}, ${util.eurToToken(investment)})`
-				investmentssList += [randAddressEncoded, util.eurToToken(investment)]
-				investors += randAddress
-				investorsSeparated.push(randAddress)
-			}
-			batch += "]"
-			investors += "]"
-			investmentsList.push(batch)
-			investorsList.push(investors)
-		}
+		for (var i = 0; i < amount; i++) {
+			let investment
 	
-		console.log("investors separated", investorsSeparated)
-		console.log("investments simplified", investmentssList)
+			if (i < amount / 3) investment = min
+			else if (i < 2 * amount / 3) investment = avg
+			else investment = max
+
+			let randomAddress = await util.generateRandomAeAddress()
+			let investmentTokens = util.eurToToken(investment)
+
+			investmentsList.push(new Array(randomAddress, investmentTokens))
+			investorsList.push(randomAddress)
+		}
 
 		return {
 			investors: investorsList,
-			investments: investmentsList,
-			investorsArray: investors
+			investments: investmentsList
 		}
 	}
 

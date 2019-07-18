@@ -1,5 +1,4 @@
 let util = require('../utils/util')
-let wallets = require('../init/accounts')
 let contracts = require('../init/contracts')
 let error = require('../utils/error')
 
@@ -47,18 +46,7 @@ class Project {
             let investors = await this.contractInstance.call("get_investments", [], { callStatic: true })
             let investorsDecoded = await investors.decode()
             console.log("Investors decoded", investorsDecoded)
-            let investorsArray = investorsDecoded.value
-            console.log("investorsArray", investorsArray)
-            let count = investorsArray.length
-            var result = []
-            for(var i = 0; i < count; ++i) {
-                console.log(investorsArray[i])
-                result.push({
-                    investor: investorsArray[i].key.value.toString(16),
-                    amount: util.tokenToEur(investorsArray[i].val.value)
-                })
-            }
-            return result
+            return investorsDecoded
         })
     }
 
@@ -75,10 +63,13 @@ class Project {
         console.log(`Adding initial investors for project at ${this.address()}`)
         return util.executeWithStats(await client.address(), async () => {
             let initialInvestments = this.project.state.investments
-            var investmentBatchesCount = initialInvestments.length
-            for (var i = 0; i < investmentBatchesCount; i++) {
+            let initialInvestmentsCount = initialInvestments.length
+            let batchSize = 50
+            let batchCount = Math.ceil(initialInvestmentsCount / batchSize)
+            for (var i = 0; i < batchCount; i++) {
                 console.log(`Adding batch ${i+1}`)
-                let investmentsList = initialInvestments[i]
+                let position = i * batchSize
+                let investmentsList = initialInvestments.slice(position, Math.min(position + batchSize, initialInvestmentsCount))
                 await this.addInvestors(client, investmentsList)
             }
         })

@@ -1,5 +1,3 @@
-const util = require("../utils/util")
-const error = require("../utils/error")
 const contracts = require('../init/contracts')
 async function deploy(accounts) {
 

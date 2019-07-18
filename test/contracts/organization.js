@@ -1,5 +1,4 @@
 let contracts = require('../init/contracts')
-let util = require('../utils/util')
 let error = require('../utils/error')
 
 class Organization {
