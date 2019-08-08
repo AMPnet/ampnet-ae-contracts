@@ -18,45 +18,53 @@ let Ae = require('@aeternity/aepp-sdk').Universal
 
 let fs = require('fs')
 let path = require('path')
+let rl = require('readline-sync')
+
+let util = require('../util/util')
 
 const deploy = async (network, privateKey) => {
+	switch (network) {
+		case "local":
+			url = 'http://localhost:3001/',
+			compilerUrl = 'http://localhost:3080',
+			ownerKeypair = {
+				publicKey: "ak_fUq2NesPXcYZ1CcqBcGC3StpdnQw3iVxMA3YSeCNAwfN4myQk",
+				secretKey: "7c6e602a94f30e4ea7edabe4376314f69ba7eaa2f355ecedb339df847b6f0d80575f81ffb0a297b7725dc671da0b1769b1fc5cbe45385c7b5ad1fc2eaf1d609d"
+			}
+			networkId = 'ae_devnet'
+			break
+		case "testnet":
+			url = 'https://sdk-testnet.aepps.com/'
+			compilerUrl = 'https://compiler.aepps.com'
+			networkId = 'ae_uat'
+			ownerKeypair = util.loadKey()
+			break
+		case "mainnet":
+			url = 'https://sdk-mainnet.aepps.com'
+			compilerUrl = 'https://compiler.aepps.com'
+			networkId = 'ae_mainnet'
+			ownerKeypair = util.loadKey()
+			break
+		default:
+			throw new Error('Wrong network specified while runnging deploy script. Expected local/testnet/mainnet as network parameter!')
+	}
 
-	// Initialize Coop client and contract
-
-	let coopClient = await Ae({
-        url: 'http://localhost:3001/',
-        internalUrl: 'http://localhost:3001/internal/',
-        keypair: {
-			"publicKey": "ak_fUq2NesPXcYZ1CcqBcGC3StpdnQw3iVxMA3YSeCNAwfN4myQk",
-			"secretKey": "7c6e602a94f30e4ea7edabe4376314f69ba7eaa2f355ecedb339df847b6f0d80575f81ffb0a297b7725dc671da0b1769b1fc5cbe45385c7b5ad1fc2eaf1d609d"
-		},
-        nativeMode: true,
-		networkId: 'ae_devnet',
-		compilerUrl: 'http://localhost:3080'
+	let client = await Ae({
+        url: url,
+        keypair: ownerKeypair,
+		networkId: networkId,
+		compilerUrl: compilerUrl
 	})
+
 	let coopSource = fs.readFileSync(path.join(__dirname, '..', 'contracts', 'Coop.aes')).toString('utf-8')
-	let coopContract = await coopClient.getContractInstance(coopSource)
-	
+	let coopContract = await client.getContractInstance(coopSource)
 
-	// Initialize EUR client and contract
-
-	let eurClient = await Ae({
-        url: 'http://localhost:3001/',
-        internalUrl: 'http://localhost:3001/internal/',
-        keypair: {
-			"publicKey": "ak_tWZrf8ehmY7CyB1JAoBmWJEeThwWnDpU4NadUdzxVSbzDgKjP",
-			"secretKey": "7fa7934d142c8c1c944e1585ec700f671cbc71fb035dc9e54ee4fb880edfe8d974f58feba752ae0426ecbee3a31414d8e6b3335d64ec416f3e574e106c7e5412"
-		},
-        nativeMode: true,
-		networkId: 'ae_devnet',
-		compilerUrl: 'http://localhost:3080'
-	})
 	let eurSource = fs.readFileSync(path.join(__dirname, '..', 'contracts', 'EUR.aes')).toString('utf-8')
-	let eurContract = await eurClient.getContractInstance(eurSource)
-
+	let eurContract = await client.getContractInstance(eurSource)
 
 	// Deploy
-	
+	console.log(`Deploying contracts from wallet: ${ownerKeypair.publicKey}`)
+
 	let coop = await coopContract.deploy()
 	console.log(`Coop deployed at: ${coop.address}`)
 	
@@ -64,8 +72,17 @@ const deploy = async (network, privateKey) => {
 	console.log(`EUR deployed at: ${eur.address}`)
 
 	await coopContract.call('set_token', [eur.address])
-	console.log('EUR token registered in Coop contract')
+	console.log('EUR token registered in Coop contract.')
 
+	if (network != 'local') {
+		let newCoopOwner = rl.question("New Coop owner address: ")
+		await coopContract.call('transfer_ownership', [newCoopOwner])
+		console.log('Changed ownership for deployed Coop contract!')
+	
+		let newEurOwner = rl.question("New Token owner address: ")
+		await eurContract.call('transfer_ownership', [newEurOwner])
+		console.log('Changed ownership for deployed Token contract!')
+	}
 };
 
 module.exports = {

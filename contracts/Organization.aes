@@ -2,6 +2,10 @@ contract CoopInterface =
     entrypoint is_wallet_active : (address) => bool
 
 contract Organization =
+
+    datatype event =
+        OrganizationCreated
+
     record state = {
         coop       : CoopInterface,
         owner      : address,
@@ -11,6 +15,7 @@ contract Organization =
         require(
             coop.is_wallet_active(Call.caller),
             "Cannot create Organization, caller not registered Cooperative user.")
+        Chain.event(OrganizationCreated)
         { coop = coop,
           owner = Call.caller, 
           members = {} }

@@ -1,4 +1,7 @@
 node_modules
 
-# still not sure if it is safe to ignore forgae-store (?)
+.DS_Store
 .forgae-store
+.env
+
+keys/

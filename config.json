@@ -1,0 +1,33 @@
+{
+    "local": {
+        "url": "http://localhost:3001/",
+        "compiler": "http://localhost:3080",
+        "networkId": "ampnet_local_forgae_nodes",
+        "keys": {
+            "coop": {
+                "publicKey": "",
+                "secretKey": ""
+            },
+            "eur": {
+                "publicKey": "",
+                "secretKey": ""
+            }
+        }
+    },
+    "testnet": {
+        "url": "https://sdk-testnet.aepps.com/",
+        "compiler": "https://compiler.aepps.com",
+        "networkId": "ae_uat",
+        "keys": {
+            "coop": {
+                "publicKey": "",
+                "secretKey": ""
+            },
+            "eur": {
+                "publicKey": "",
+                "secretKey": ""
+            }
+        }
+    },
+    "mainnet": { }
+}

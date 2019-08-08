@@ -42,6 +42,9 @@ describe("Stress tests", () => {
 		await org.deploy()
 		await coop.registerWallet(org.address())
 
+		let orgWalletActive = await coop.isWalletActive(org.address())
+		console.log("Org wallet active", orgWalletActive)
+
 		// Bob creates project under his organization, admin approves by activating project wallet
 		let proj = new Project(org.address(), accounts.bob.client, projData)
 		await proj.deploy()

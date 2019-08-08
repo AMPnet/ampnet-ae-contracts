@@ -14,6 +14,13 @@ contract OrgInterface =
     entrypoint owner : () => address
 
 contract Project =
+
+    datatype event =
+        StartRevenuePayout(int)
+      | RevenueSharePayout(address, int)
+      | ProjectCreated
+      | NewInvestment(address, int)
+
     record state = {
         organization               : OrgInterface,
         minInvestmentPerUser       : int,
@@ -42,6 +49,8 @@ contract Project =
         require(
             organization.is_verified(),
             "Organization must have an active wallet before it can create new Project.")
+        
+        Chain.event(ProjectCreated)
 
         { organization = organization,
           minInvestmentPerUser = minInvestmentPerUser,
@@ -71,14 +80,15 @@ contract Project =
 
         recursive_investment_add(investmentsList)
 
-    stateful entrypoint invest() =
+    stateful entrypoint invest(investor: address) =
         let token = state.organization.coop().token()
-        let amount = token.allowance(Call.caller, Contract.address)
+        let amount = token.allowance(investor, Contract.address)
         
-        check_investment_preconditions(Call.caller, amount)
-        token.transfer_from(Call.caller, Contract.address, amount)
-        persist_investment(Call.caller, amount)
+        check_investment_preconditions(investor, amount)
+        token.transfer_from(investor, Contract.address, amount)
+        persist_investment(investor, amount)
 
+        Chain.event(NewInvestment(investor, amount))
 
     stateful entrypoint withdraw(tokenIssuer: address, amount: int) =
         require(
@@ -112,12 +122,10 @@ contract Project =
             revenueToSplit = revenue,
             payoutInProcess = true,
             nextInvestorPayoutIndex = 0 })
+
+        Chain.event(StartRevenuePayout(revenue))
     
     stateful entrypoint payout_revenue_shares() : bool =
-        require(
-            only_organization_admin(),
-            "Only organization owner can payout revenue shares batch.")
-
         require(
             is_completely_funded(),
             "Cannot start payout revenue shares batch while project is still in funding phase.")
@@ -174,7 +182,7 @@ contract Project =
         let share = revenue * investment / state.totalFundsRaised
 
         state.organization.coop().token().transfer(investor, share)
-
+        Chain.event(RevenueSharePayout(investor, share))
         if (currentInvestorIndex < lastInvestorIndex)
             recursive_revenue_batch_payout(currentInvestorIndex + 1, lastInvestorIndex, revenue)
 

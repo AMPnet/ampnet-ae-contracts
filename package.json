@@ -4,15 +4,21 @@
   "description": "This is the default package.json generated for your project",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "generateKey": "node -e 'require(\"./util/util\").generateKey()'"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@aeternity/aepp-sdk": "^4.2.0",
+    "cryptr": "^4.0.2",
+    "dotenv": "^8.0.0",
     "forgae": "^2.0.1",
+    "forgae-config": "^2.0.0",
     "forgae-lib": "1.0.4",
+    "lodash": "^4.17.15",
     "randomstring": "^1.1.5",
+    "readline-sync": "^1.4.10",
     "yarn": "1.16.0"
   },
   "devDependencies": {

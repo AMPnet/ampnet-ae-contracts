@@ -2,6 +2,10 @@ contract TokenInterface =
     entrypoint balance_of : (address) => (int)
 
 contract Coop =
+
+    datatype event =
+        WalletAdded(address)
+
     record state = {
         owner                      : address,
         activeWallets              : map(address, bool),
@@ -12,6 +16,10 @@ contract Coop =
           activeWallets = {},
           token = None }
     
+    stateful entrypoint transfer_ownership(newOwner: address) =
+        only_owner()
+        put(state{ owner = newOwner })
+    
     stateful entrypoint set_token(token: TokenInterface) =
         only_owner()
         put(state{ token = Some(token) })
@@ -19,12 +27,13 @@ contract Coop =
     stateful entrypoint add_wallet(wallet: address) =
         only_owner()
         put(state{ activeWallets[wallet] = true })
+        Chain.event(WalletAdded(wallet))
 
     stateful entrypoint add_wallets(wallets: list(address)) =
         only_owner()
         recursive_wallets_add(wallets)
 
-    entrypoint is_wallet_active(wallet: address) : bool = state.activeWallets[wallet]
+    entrypoint is_wallet_active(wallet: address) : bool = state.activeWallets[wallet = false]
 
     entrypoint owner() : address = state.owner
     

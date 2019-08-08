@@ -35,7 +35,7 @@ function tokenToEur(token) {
 }
 
 function aeonToDollar(ae) {
-    return (ae / factor) * 0.46
+    return (ae / factor) * 0.3
 }
 
 Object.assign(exports, {
