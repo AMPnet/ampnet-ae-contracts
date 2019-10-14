@@ -1,7 +1,7 @@
 {
-  "name": "forgae-project",
+  "name": "ampnet-ae-contracts",
   "version": "1.0.0",
-  "description": "This is the default package.json generated for your project",
+  "description": "AMPnet Crowdfunding platform contracts collection.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -10,16 +10,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@aeternity/aepp-sdk": "^4.2.0",
+    "@aeternity/aepp-sdk": "^5.0.0",
+    "aeproject-lib": "1.0.0",
     "cryptr": "^4.0.2",
     "dotenv": "^8.0.0",
-    "forgae": "^2.0.1",
-    "forgae-config": "^2.0.0",
-    "forgae-lib": "1.0.4",
     "lodash": "^4.17.15",
     "randomstring": "^1.1.5",
     "readline-sync": "^1.4.10",
-    "yarn": "1.16.0"
+    "yarn": "1.19.1"
   },
   "devDependencies": {
     "bs58check": "^2.1.2",
