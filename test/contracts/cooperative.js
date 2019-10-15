@@ -10,7 +10,7 @@ class Cooperative {
     async registerWallet(address) {
         console.log(`Registering wallet ${address}`)
         return await util.executeWithStats(this.owner(), async () => {
-           return await this.contractInstance.call("add_wallet", [ util.enforceAkPrefix(address) ], {}).catch(error.decode)
+            return this.contractInstance.methods.add_wallet(util.enforceAkPrefix(address))
         })
     }
 
@@ -24,16 +24,15 @@ class Cooperative {
                 console.log(`Registering batch ${i+1}.`)
                 let position = i * batchSize
                 let addressBatch = addressList.slice(position, Math.min(addressListSize, position + batchSize))
-                await this.contractInstance.call("add_wallets", [ addressBatch ]).catch(error.decode)
+                await this.contractInstance.methods.add_wallets(addressBatch)
             }
         })
     }
 
     async isWalletActive(address) {
         console.log(`Received request to check is wallet ${address} active`)
-        let status = await this.contractInstance.call("is_wallet_active", [ util.enforceAkPrefix(address) ], { callStatic: true })
-        let statusDecoded = await status.decode()
-        return statusDecoded
+        let call = await this.contractInstance.methods.is_wallet_active(util.enforceAkPrefix(address))
+        return call.decodedResult
     }
 
     address() {

@@ -9,18 +9,15 @@ class Eur {
     async mint(address, amount) {
         console.log(`Minting $${amount} to wallet ${address}`)
         return util.executeWithStats(this.owner(), async () => {
+            let addressToMint = util.enforceAkPrefix(address)
             let tokenAmount = util.eurToToken(amount)
-            return this.contractInstance.call("mint", [util.enforceAkPrefix(address), tokenAmount]).catch(error.decode)
+            return this.contractInstance.methods.mint(addressToMint, tokenAmount)
         })
     }
 
     async getBalance(address) {
-        console.log(`Fetching balance for wallet ${address}`)
-        let balance = await this.contractInstance.call("balance_of", [util.enforceAkPrefix(address)], { callStatic: true }).catch(error.decode)
-        let balanceDecoded = await balance.decode()
-        let balanceInEur = util.tokenToEur(balanceDecoded)
-        console.log(`Fetched balance: $${balanceInEur}`)
-        return balanceInEur
+        let call = await this.contractInstance.methods.balance_of(util.enforceAkPrefix(address))
+        return util.tokenToEur(call.decodedResult)
     }
 
     address() {

@@ -65,12 +65,24 @@ describe("Stress tests", () => {
 		// Suppose project generated $1M revenue. Payout shares to each investor
 		let revenue = 1000000
 		await eur.mint(proj.address(), revenue)
+		let balance = await eur.getBalance(proj.address())
+		console.log("project balance", balance)
+
 		await proj.startRevenueSharesPayout(revenue)
 		await proj.payoutRevenueShares()
 
 		// Check paid revenue shares
 		let investors = await proj.getInvestments()
 		console.log("investors", investors)
+
+		let projectBalance = await eur.getBalance(proj.address())
+		console.log("remaining project balance", projectBalance)
+
+		let firstInvestor = investors[0]
+		console.log("first investor", firstInvestor)
+
+		let firstInvestorBalance = await eur.getBalance(firstInvestor[0])
+		console.log("first investor balance", firstInvestorBalance)
 
 		// let investors = await proj.call("get_investors")
 		// let investorsDecoded = await investors.decode("(list((int, address)))")
