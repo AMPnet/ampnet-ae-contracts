@@ -13,11 +13,11 @@ contract Organization =
     
     stateful entrypoint init(coop: CoopInterface) : state =
         require(
-            coop.is_wallet_active(Call.caller),
+            coop.is_wallet_active(Call.origin),
             "Cannot create Organization, caller not registered Cooperative user.")
         Chain.event(OrganizationCreated)
         { coop = coop,
-          owner = Call.caller, 
+          owner = Call.origin, 
           members = {} }
     
     stateful entrypoint add_member(member: address) =
@@ -28,16 +28,16 @@ contract Organization =
     
     stateful entrypoint confirm_membership() =
         only_active_organization()
-        only_active_wallet(Call.caller)
+        only_active_wallet(Call.origin)
 
-        let approval = Map.lookup(Call.caller, state.members)
+        let approval = Map.lookup(Call.origin, state.members)
         switch(approval)
             None => abort("User tried to accept Organization invite which does not exist!")
             Some(membershipConfirmed) =>
                 if (membershipConfirmed)
                     abort("User tried to accept Organization invite but it is already accepted!")
                 else
-                    put(state{ members[Call.caller] = true })
+                    put(state{ members[Call.origin] = true })
     
     entrypoint owner() : address = state.owner
 
@@ -46,7 +46,7 @@ contract Organization =
     entrypoint is_verified() : bool = state.coop.is_wallet_active(Contract.address)
 
     function only_owner() =
-        require(Call.caller == state.owner, "Only organization owner can make this action!")
+        require(Call.origin == state.owner, "Only organization owner can make this action!")
 
     function only_active_wallet(wallet: address) =
         require(

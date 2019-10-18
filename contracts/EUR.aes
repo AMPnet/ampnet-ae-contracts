@@ -12,11 +12,11 @@ contract EUR =
     owner            : address,
     totalSupply      : int,
     balances         : map(address, int),
-    allowed          : map((address,address), int),
+    allowed          : map((address * address), int),
     coop             : CoopInterface }
 
   stateful entrypoint init(coop : CoopInterface) : state =
-    { owner       = Call.caller,
+    { owner       = Call.origin,
       totalSupply = 0,
       balances    = {},
       allowed     = {},
@@ -35,19 +35,21 @@ contract EUR =
   entrypoint allowance(owner: address, spender: address) : int = Map.lookup_default((owner, spender), state.allowed, 0)
 
   stateful entrypoint transfer(to: address, value: int) : bool =
-    only_coop_user(Call.caller)
+    let caller = Call.caller
+    only_coop_user(caller)
     only_coop_user(to)
-    _transfer(Call.caller, to, value)
+    _transfer(caller, to, value)
 
   stateful entrypoint approve(spender: address, value: int) : bool = 
-    only_coop_user(Call.caller)
+    let caller = Call.caller
+    only_coop_user(caller)
     if (spender != state.owner)
       only_coop_user(spender)
 
     require(value > 0, "Value is sub zero")
     // require(spender != #0, "Invalid spender address")
 
-    put(state{ allowed[(Call.caller, spender)] = value })
+    put(state{ allowed[(caller, spender)] = value })
     Chain.event(ApproveSpender(spender, value))
     true
 
@@ -63,30 +65,33 @@ contract EUR =
     true
 
   stateful entrypoint transfer_from(from: address, to: address, value: int) : bool =
-    only_coop_user(Call.caller)
+    let caller = Call.caller
+    only_coop_user(caller)
     only_coop_user(from)
     only_coop_user(to)
     
-    require(state.allowed[(from, Call.caller)] >= value, "Value is bigger than allowed")
+    require(state.allowed[(from, caller)] >= value, "Value is bigger than allowed")
       
-    put(state{ allowed[(from, Call.caller)] = state.allowed[(from, Call.caller)] - value })
+    put(state{ allowed[(from, caller)] = state.allowed[(from, caller)] - value })
     _transfer(from, to, value)
 
     true
 
   stateful entrypoint increase_allowance(spender: address, addedValue: int) : bool =
     // require(spender != #0, "Invalid address")
-    only_coop_user(Call.caller)
+    let caller = Call.caller
+    only_coop_user(caller)
     only_coop_user(spender)
-    put(state{ allowed[(Call.caller, spender)] = state.allowed[(Call.caller, spender)] + addedValue })
+    put(state{ allowed[(caller, spender)] = state.allowed[(caller, spender)] + addedValue })
 
     true
 
   stateful entrypoint decrease_allowance(spender: address, subtractedValue: int) : bool =
     // require(spender != #0, "Invalid address")
-    only_coop_user(Call.caller)
+    let caller = Call.caller
+    only_coop_user(caller)
     only_coop_user(spender)
-    put(state{ allowed[(Call.caller, spender)] = state.allowed[(Call.caller, spender)] - subtractedValue })
+    put(state{ allowed[(caller, spender)] = state.allowed[(caller, spender)] - subtractedValue })
 
     true
 
@@ -101,9 +106,10 @@ contract EUR =
     true
 
   stateful entrypoint burn(account: address, value: int) : bool =
+    let caller = Call.caller
     only_owner()
     only_coop_user(account)
-    require(state.allowed[(account, Call.caller)] >= value, "Value to be burned is bigger than allowed.")
+    require(state.allowed[(account, caller)] >= value, "Value to be burned is bigger than allowed.")
     require(state.balances[account] >= value, "Value to be burned is not present")
 
     put(state{ totalSupply = state.totalSupply - value,
@@ -112,7 +118,8 @@ contract EUR =
     true
 
   function only_owner() =
-      require(Call.caller == state.owner, "Only owner can mint!")
+      let caller = Call.caller
+      require(caller == state.owner, "Only owner can mint!")
 
   function only_coop_user(wallet: address) =
     require(state.coop.is_wallet_active(wallet), "Only registered Cooperative user can make this action!")

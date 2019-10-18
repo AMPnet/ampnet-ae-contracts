@@ -44,7 +44,7 @@ contract Project =
         ) : state =
 
         require(
-            Call.caller == organization.owner(),
+            Call.origin == organization.owner(),
             "Must be organization owner to be able to create Project.")
         require(
             organization.is_verified(),
@@ -65,9 +65,9 @@ contract Project =
           nextInvestorPayoutIndex = 0,
           revenue_mint_batch_size = 10 }   // rethink about this constant (what value should it be? can we change it afterwards? etc..)
     
-    stateful entrypoint add_investments(investmentsList: list((address, int))) =
+    stateful entrypoint add_investments(investmentsList: list((address * int))) =
         require(
-            Call.caller == state.organization.coop().owner(),
+            Call.origin == state.organization.coop().owner(),
             "Only Cooperative can manually add new investments!")
 
         require(
@@ -159,11 +159,11 @@ contract Project =
         recursive_revenue_batch_payout(fromIndex, toIndex, revenue)
         state.payoutInProcess
 
-    entrypoint get_investment() : int = state.investments[Call.caller = 0]
+    entrypoint get_investment() : int = state.investments[Call.origin = 0]
 
     entrypoint get_investments() : map(address, int) = state.investments
 
-    entrypoint get_investors() : list((int, address)) = Map.to_list(state.investors)
+    entrypoint get_investors() : list((int * address)) = Map.to_list(state.investors)
 
     entrypoint has_funding_expired() : bool = Chain.timestamp > state.endsAt
 
@@ -171,7 +171,7 @@ contract Project =
 
     entrypoint is_completely_funded() : bool = state.totalFundsRaised == state.investmentCap
 
-    function only_organization_admin() : bool = Call.caller == state.organization.owner()
+    function only_organization_admin() : bool = Call.origin == state.organization.owner()
 
     stateful function recursive_revenue_batch_payout(
         currentInvestorIndex: int, 
@@ -187,7 +187,7 @@ contract Project =
             recursive_revenue_batch_payout(currentInvestorIndex + 1, lastInvestorIndex, revenue)
 
 
-    stateful function recursive_investment_add(investments: list((address, int))) : int =
+    stateful function recursive_investment_add(investments: list((address * int))) : int =
         switch (investments)
             investment::investments' =>
                 switch (investment)

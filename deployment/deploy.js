@@ -35,13 +35,13 @@ const deploy = async (network, privateKey) => {
 			break
 		case "testnet":
 			url = 'https://sdk-testnet.aepps.com/'
-			compilerUrl = 'https://compiler.aepps.com'
+			compilerUrl = 'https://latest.compiler.aepps.com'
 			networkId = 'ae_uat'
 			ownerKeypair = util.loadKey()
 			break
 		case "mainnet":
 			url = 'https://sdk-mainnet.aepps.com'
-			compilerUrl = 'https://compiler.aepps.com'
+			compilerUrl = 'https://latest.compiler.aepps.com'
 			networkId = 'ae_mainnet'
 			ownerKeypair = util.loadKey()
 			break
@@ -74,7 +74,7 @@ const deploy = async (network, privateKey) => {
 	await coopContract.call('set_token', [eur.address])
 	console.log('EUR token registered in Coop contract.')
 
-	if (network != 'local') {
+	if (rl.keyInYN("Transfer ownership of deployed contracts?")) {
 		let newCoopOwner = rl.question("New Coop owner address: ")
 		await coopContract.call('transfer_ownership', [newCoopOwner])
 		console.log('Changed ownership for deployed Coop contract!')

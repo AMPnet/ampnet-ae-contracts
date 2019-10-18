@@ -12,7 +12,7 @@ contract Coop =
         token                      : option(TokenInterface) }
     
     stateful entrypoint init() : state =
-        { owner = Call.caller,
+        { owner = Call.origin,
           activeWallets = {},
           token = None }
     
@@ -52,4 +52,4 @@ contract Coop =
             [] => 0
 
     function only_owner() =
-        require(Call.caller == state.owner, "Only owner can make this action!")
+        require(Call.origin == state.owner, "Only owner can make this action!")
