@@ -12,7 +12,7 @@
   "dependencies": {
     "@aeternity/aepp-sdk": "5.0.0",
     "aeproject-lib": "1.0.0",
-    "cryptr": "^4.0.2",
+    "cryptr": "^6.0.0",
     "dotenv": "^8.0.0",
     "lodash": "^4.17.15",
     "randomstring": "^1.1.5",
