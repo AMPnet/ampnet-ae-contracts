@@ -17,7 +17,7 @@
     "lodash": "^4.17.15",
     "randomstring": "^1.1.5",
     "readline-sync": "^1.4.10",
-    "yarn": "1.19.1"
+    "yarn": "1.19.2"
   },
   "devDependencies": {
     "bs58check": "^2.1.2",
