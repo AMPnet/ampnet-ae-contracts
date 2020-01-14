@@ -1,6 +1,7 @@
+let Ae = require('@aeternity/aepp-sdk').Universal
+let AeConfig = require('../init/config').local
+let contractSource = require('../init/contracts').coopSource
 let util = require('../utils/util')
-
-let error = require('../utils/error')
 
 class Cooperative {
 
@@ -35,6 +36,19 @@ class Cooperative {
 
     owner() {
         return this.contractInstance.deployInfo.owner
+    }
+
+
+    async getInstance(keypair) {
+        let config = {
+            ...AeConfig,
+            keypair: keypair
+        }
+        let client = await Ae(config)
+        let instance = await client.getContractInstance(contractSource, {
+            contractAddress: this.address()
+        })
+        return new Cooperative(instance) 
     }
 
 }
