@@ -10,48 +10,32 @@ async function initialize(wallets) {
     let coopAddress = wallets[0].publicKey
     let coopPrivateKey = wallets[0].secretKey
     let coopClient = await Ae({
-        url: config.host,
-        internalUrl: config.internalHost,
-        keypair: coopKeypair,
-        nativeMode: true,
-        networkId: 'ae_devnet',
-        compilerUrl: 'http://localhost:3080'
+        ...config,
+        keypair: coopKeypair
     })
 
     let eurKeypair = wallets[1]
     let eurAddress = wallets[1].publicKey
     let eurPrivateKey = wallets[1].secretKey
     let eurClient = await Ae({
-        url: config.host,
-        internalUrl: config.internalHost,
-        keypair: eurKeypair,
-        nativeMode: true,
-        networkId: 'ae_devnet',
-        compilerUrl: 'http://localhost:3080'
+        ...config,
+        keypair: eurKeypair
     })
 
     let bobKeypair = wallets[2]
     let bobAddress = wallets[2].publicKey
     let bobPrivateKey = wallets[2].secretKey
     let bobClient = await Ae({
-        url: config.host,
-        internalUrl: config.internalHost,
-        keypair: bobKeypair,
-        nativeMode: true,
-        networkId: 'ae_devnet',
-        compilerUrl: 'http://localhost:3080'
+        ...config,
+        keypair: bobKeypair
     })
 
     let aliceKeypair = wallets[3]
     let aliceAddress = wallets[3].publicKey
     let alicePrivateKey = wallets[3].secretKey
     let aliceClient = await Ae({
-        url: config.host,
-        internalUrl: config.internalHost,
-        keypair: aliceKeypair,
-        nativeMode: true,
-        networkId: 'ae_devnet',
-        compilerUrl: 'http://localhost:3080'
+        ...config,
+        keypair: aliceKeypair
     })
 
     mainClient = coopClient

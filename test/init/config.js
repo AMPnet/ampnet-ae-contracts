@@ -1,8 +1,8 @@
 let local = {
-    host: "http://localhost:3001/",
-    internalHost: "http://localhost:3001/internal/",
-    gas: 200000,
-    ttl: 55
+    url: "http://localhost:3001/",
+    internalUrl: "http://localhost:3001/internal/",
+    compilerUrl: 'http://localhost:3080',
+    networkId: 'ae_devnet'
 }
 
 Object.assign(exports, { local })

@@ -1,3 +1,4 @@
+let { Crypto } = require('@aeternity/aepp-sdk')
 let fromExponential = require('from-exponential')
 let now = require('performance-now')
 let randomBytes = require('random-bytes')
@@ -18,6 +19,10 @@ function enforceAkPrefix(address) {
     return address.replace("ct_", "ak_")
 }
 
+function generateRandomAeWallet() {
+    return Crypto.generateKeyPair()
+}
+
 async function generateRandomAeAddress() {
     let randAddress = await randomBytes(32)
     let randAddressEncoded = 'ak_' + bs58.encode(randAddress)
@@ -31,7 +36,7 @@ function eurToToken(eur) {
 }
 
 function tokenToEur(token) {
-    return token / factor
+    return Number(fromExponential(token / factor));
 }
 
 function aeonToDollar(ae) {
@@ -43,5 +48,6 @@ Object.assign(exports, {
     tokenToEur,
     executeWithStats,
     enforceAkPrefix,
-    generateRandomAeAddress
+    generateRandomAeAddress,
+    generateRandomAeWallet
 })

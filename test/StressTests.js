@@ -39,7 +39,6 @@ describe("Stress tests", () => {
 
 		// Bob creates organization, admin approves by activating wallet
 		let org = new Organization(coop.address(), accounts.bob.client)
-		await org.deploy()
 		await coop.registerWallet(org.address())
 
 		let orgWalletActive = await coop.isWalletActive(org.address())
