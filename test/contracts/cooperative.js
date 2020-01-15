@@ -38,7 +38,6 @@ class Cooperative {
         return this.contractInstance.deployInfo.owner
     }
 
-
     async getInstance(keypair) {
         let config = {
             ...AeConfig,

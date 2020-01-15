@@ -1,5 +1,7 @@
-let contracts = require('../init/contracts')
-let error = require('../utils/error')
+let Ae = require('@aeternity/aepp-sdk').Universal
+let AeConfig = require('../init/config').local
+let source = require('../init/contracts').orgSource
+let util = require('../utils/util')
 
 class Organization {
 
@@ -9,10 +11,26 @@ class Organization {
     }
 
     async deploy() {
-        console.log("Deploying Organization contract")
-        this.contractInstance = await this.client.getContractInstance(contracts.orgSource)
-        await this.contractInstance.deploy([this.coopAddress]).catch(error.decode)
-        console.log(`Organization deployed on ${this.address()}\n`)
+        this.contractInstance = await this.client.getContractInstance(source)
+        await this.contractInstance.deploy([this.coopAddress])
+    }
+
+    async isVerified() {
+        let callResult = await this.contractInstance.methods.is_verified()
+        return callResult.decode()
+    }
+
+    async addMember(address) {
+        return this.contractInstance.methods.add_member(address)
+    }
+
+    async confirmMembership() {
+        return this.contractInstance.methods.confirm_membership()
+    }
+
+    async isMember(address) {
+        let callResult = await this.contractInstance.methods.is_member(address)
+        return callResult.decode()
     }
 
     address() {
@@ -21,6 +39,20 @@ class Organization {
 
     owner() {
         return this.contractInstance.deployInfo.owner
+    }
+
+    async getInstance(keypair) {
+        let config = {
+            ...AeConfig,
+            keypair: keypair
+        }
+        let client = await Ae(config)
+        let instance = await client.getContractInstance(source, {
+            contractAddress: this.address()
+        })
+        let org = new Organization(this.address(), client)
+        org.contractInstance = instance
+        return org
     }
 
 }
