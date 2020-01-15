@@ -1,3 +1,6 @@
+let Ae = require('@aeternity/aepp-sdk').Universal
+let AeConfig = require('../init/config').local
+let source = require('../init/contracts').projSource
 let util = require('../utils/util')
 let contracts = require('../init/contracts')
 let error = require('../utils/error')
@@ -16,10 +19,35 @@ class Project {
         let cap = util.eurToToken(this.project.investmentCap)
         let endsAt = this.project.endsAt
 
-        console.log("Deploying Project contract")
         this.contractInstance = await this.client.getContractInstance(contracts.projSource)
-        await this.contractInstance.deploy([this.orgAddress, minPerUser, maxPerUser, cap, endsAt]).catch(error.decode)
-        console.log(`Project deployed on ${this.address()}\n`)
+        await this.contractInstance.deploy([this.orgAddress, minPerUser, maxPerUser, cap, endsAt])
+    }
+
+    async getInfo() {
+        let callResult = await this.contractInstance.methods.get_project_info()
+        let decoded = await callResult.decode()
+        return {
+            minInvestmentPerUser: util.tokenToEur(decoded[0]),
+            maxInvestmentPerUser: util.tokenToEur(decoded[1]),
+            investmentCap: util.tokenToEur(decoded[2]),
+            endsAt: decoded[3]
+        }
+    }
+
+    async hasFundingExpired() {
+        let callResult = await this.contractInstance.methods.has_funding_expired()
+        return callResult.decode()
+    }
+
+    async totalFundsRaised() {
+        let callResult = await this.contractInstance.methods.total_funds_raised()
+        let decoded = await callResult.decode()
+        return util.tokenToEur(decoded)
+    }
+
+    async isCompletelyFunded() {
+        let callResult = await this.contractInstance.methods.is_completely_funded()
+        return callResult.decode()
     }
 
     async makeInvestment(client) {
@@ -98,17 +126,26 @@ class Project {
         })
     }
 
-    async isCompletelyFunded() {
-        let call = await this.contractInstance.methods.is_completely_funded()
-        return call.decodedResult
-    }
-
     address() {
         return this.contractInstance.deployInfo.address
     }
 
     owner() {
         return this.contractInstance.deployInfo.owner
+    }
+
+    async getInstance(keypair) {
+        let config = {
+            ...AeConfig,
+            keypair: keypair
+        }
+        let client = await Ae(config)
+        let instance = await client.getContractInstance(source, {
+            contractAddress: this.address()
+        })
+        let proj = new Project(this.address(), this.client, this.project)
+        proj.contractInstance = instance
+        return proj
     }
 
 }
