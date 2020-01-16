@@ -50,21 +50,15 @@ class Project {
         return callResult.decode()
     }
 
-    async makeInvestment(client) {
-        let contractInstance = await client.getContractInstance(contracts.projSource, { contractAddress: this.address() })
-        console.log(`Confirm and execute investment from investor ${investor} in project ${this.address()}`)
-        util.executeWithStats(investor, async () => {
-            return contractInstance.methods.invest()
-        })
+    async invest(address) {
+        let investorAddress = util.enforceAkPrefix(address)
+        return this.contractInstance.methods.invest(investorAddress)
     }
-    
-    async getInvestment(client) {
-        let contractInstance = await client.getContractInstance(contracts.projSource, { contractAddress: this.address() })
-        console.log(`Fetching investment for investor ${investor} in project ${this.address()}`)
-        let call = await contractInstance.methods.get_investment()
-        let investmentInEur = util.tokenToEur(call.decodedResult)
-        console.log(`Fetched investment: $${investmentInEur}\n`)
-        return investmentInEur
+
+    async getInvestment() {
+        let callResult = await this.contractInstance.methods.get_investment()
+        let decoded = await callResult.decode()
+        return util.tokenToEur(decoded)
     }
 
     async getInvestments() {
@@ -76,10 +70,8 @@ class Project {
     }
 
     async totalFundsRaised() {
-        console.log(`Fetching total funds raised for project ${this.address()}`)
         let call = await this.contractInstance.methods.total_funds_raised()
         let raisedInEur = util.tokenToEur(call.decodedResult)
-        console.log(`Raised: $${raisedInEur}`)
         return raisedInEur
     }
     
