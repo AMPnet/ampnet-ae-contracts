@@ -4,7 +4,7 @@
   "description": "AMPnet Crowdfunding platform contracts collection.",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha --timeout 200000",
+    "test": "./node_modules/mocha/bin/mocha --timeout 800000",
     "generateKey": "node -e 'require(\"./util/util\").generateKey()'"
   },
   "author": "",
@@ -21,6 +21,7 @@
     "yarn": "1.19.1"
   },
   "devDependencies": {
+    "bignumber.js": "^9.0.0",
     "bs58check": "^2.1.2",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",

@@ -6,6 +6,17 @@ let mainClient
 function main() { return mainClient }
 
 async function initialize(wallets) {
+    let bankKeypair = {
+        publicKey: "ak_2mwRmUeYmfuW93ti9HMSUJzCk1EYcQEfikVSzgo6k2VghsWhgU",
+        secretKey: "bb9f0b01c8c9553cfbaf7ef81a50f977b1326801ebf7294d1c2cbccdedf27476e9bbf604e611b5460a3b3999e9771b6f60417d73ce7c5519e12f7e127a1225ca"
+    }
+    let bankAddress = bankKeypair.publicKey
+    let bankPrivateKey = bankKeypair.secretKey
+    let bankClient = await Ae({
+        ...config,
+        keypair: bankKeypair
+    })
+
     let coopKeypair = wallets[0]
     let coopAddress = wallets[0].publicKey
     let coopPrivateKey = wallets[0].secretKey
@@ -41,6 +52,11 @@ async function initialize(wallets) {
     mainClient = coopClient
 
     return {
+        bank: {
+            client: bankClient,
+            address: bankAddress,
+            privateKey: bankPrivateKey
+        },
         coop: {
             client: coopClient,
             address: coopAddress,
@@ -69,7 +85,6 @@ Object.assign(exports, { initialize, main })
 /*
 
 #0 MINER
-ak_RznJ9LCgUYhNrHFFvP83k8ptm3feTHWwTFK6CMyJ4Budsc9qx
 ak_2mwRmUeYmfuW93ti9HMSUJzCk1EYcQEfikVSzgo6k2VghsWhgU
 bb9f0b01c8c9553cfbaf7ef81a50f977b1326801ebf7294d1c2cbccdedf27476e9bbf604e611b5460a3b3999e9771b6f60417d73ce7c5519e12f7e127a1225ca
 

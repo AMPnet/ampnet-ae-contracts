@@ -67,7 +67,7 @@ describe("EUR contract tests", () => {
 
         await coop.registerWallet(randomWallet.publicKey)
         await eur.mint(randomWallet.publicKey, startingBalance)
-        await accounts.coop.client.spend(100000000000000000, randomWallet.publicKey)
+        await accounts.bank.client.spend(100000000000000000, randomWallet.publicKey)
 
         let randomWalletEurInstance = await eur.getInstance(randomWallet)
         await randomWalletEurInstance.approve(eur.owner(), withdrawAmount)
@@ -90,7 +90,7 @@ describe("EUR contract tests", () => {
         await coop.registerWallet(alice.publicKey)
         await coop.registerWallet(bob.publicKey)
         
-        await accounts.coop.client.spend(100000000000000000, bob.publicKey)
+        await accounts.bank.client.spend(100000000000000000, bob.publicKey)
         await eur.mint(bob.publicKey, bobInitialBalance)
 
         let bobEurInstance = await eur.getInstance(bob)
@@ -110,7 +110,7 @@ describe("EUR contract tests", () => {
         let amount = 100
         await coop.registerWallet(registeredCoopWallet.publicKey)
         await eur.mint(registeredCoopWallet.publicKey, amount)
-        await accounts.coop.client.spend(100000000000000000, registeredCoopWallet.publicKey)
+        await accounts.bank.client.spend(100000000000000000, registeredCoopWallet.publicKey)
         
         let registeredCoopWalletEurInstance = await eur.getInstance(registeredCoopWallet)
         let forbiddenTransfer = registeredCoopWalletEurInstance.transfer(nonRegisteredCoopWallet.publicKey, amount)
@@ -122,7 +122,7 @@ describe("EUR contract tests", () => {
         let randomWallet = util.generateRandomAeWallet()
         let amount = 100
 
-        await accounts.coop.client.spend(100000000000000000, randomWallet.publicKey)
+        await accounts.bank.client.spend(100000000000000000, randomWallet.publicKey)
         await coop.registerWallet(randomWallet.publicKey)
         await eur.mint(randomWallet.publicKey, amount)
 

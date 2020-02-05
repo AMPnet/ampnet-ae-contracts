@@ -4,6 +4,7 @@ let now = require('performance-now')
 let randomBytes = require('random-bytes')
 let bs58 = require('bs58check')
 let clients = require('../init/accounts')
+let BigNumber = require('bignumber.js')
 
 async function executeWithStats(wallet, func) {
     let startBalance = await clients.main().balance(wallet)
@@ -36,7 +37,8 @@ function eurToToken(eur) {
 }
 
 function tokenToEur(token) {
-    return Number(fromExponential(token / factor));
+    let value = BigNumber(token)
+    return Math.floor(value.dividedBy(factor));
 }
 
 function aeonToDollar(ae) {

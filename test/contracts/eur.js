@@ -24,6 +24,7 @@ class Eur {
     async getBalance(address) {
         let call = await this.contractInstance.methods.balance_of(util.enforceAkPrefix(address))
         let result = await call.decode()
+        console.log(`Balance of ${address} = ${result}`)
         return util.tokenToEur(result)
     }
 

@@ -34,13 +34,14 @@ describe("Organization contract tests", () => {
 		coop = new Cooperative(deployed.coop)
 		eur = new Eur(deployed.eur)
     })
+
     
     ///////////// --------- TESTS ----------- ///////////
 
     it("can create new organization if caller's wallet is registered by Cooperative", async () => {
         let randomWallet = util.generateRandomAeWallet()
         await coop.registerWallet(randomWallet.publicKey)
-        await accounts.coop.client.spend(100000000000000000, randomWallet.publicKey)
+        await accounts.bank.client.spend(100000000000000000, randomWallet.publicKey)
 
         let newOrganization = await createOrganization(randomWallet)
         expect(newOrganization.contractInstance.deployInfo.result.returnType).is.equal('ok')
@@ -48,7 +49,7 @@ describe("Organization contract tests", () => {
 
     it("should fail if non-registered user is trying to create organization", async () => {
         let randomWallet = util.generateRandomAeWallet()
-        await accounts.coop.client.spend(100000000000000000, randomWallet.publicKey)
+        await accounts.bank.client.spend(100000000000000000, randomWallet.publicKey)
         let forbiddenOrgCreate = createOrganization(randomWallet)
         await expect(forbiddenOrgCreate).to.be.rejectedWith("Invocation failed: cb_AQZDYW5ub3QgY3JlYXRlIE9yZ2FuaXphdGlvbiwgY2FsbGVyIG5vdCByZWdpc3RlcmVkIENvb3BlcmF0aXZlIHVzZXIuxcGeqw==. Decoded: \u0001\u0006Cannot create Organization, caller not registered Cooperative user.����")
     })
@@ -56,7 +57,7 @@ describe("Organization contract tests", () => {
     it("has no active wallet by default", async () => {
         let randomWallet = util.generateRandomAeWallet()
         await coop.registerWallet(randomWallet.publicKey)
-        await accounts.coop.client.spend(100000000000000000, randomWallet.publicKey)
+        await accounts.bank.client.spend(100000000000000000, randomWallet.publicKey)
 
         let org = await createOrganization(randomWallet)
         let isWalletActive = await coop.isWalletActive(org.address())
@@ -66,7 +67,7 @@ describe("Organization contract tests", () => {
     it("can get verified by Cooperative (which results in active organization wallet)", async () => {
         let randomWallet = util.generateRandomAeWallet()
         await coop.registerWallet(randomWallet.publicKey)
-        await accounts.coop.client.spend(100000000000000000, randomWallet.publicKey)
+        await accounts.bank.client.spend(100000000000000000, randomWallet.publicKey)
 
         let org = await createOrganization(randomWallet)
         await coop.registerWallet(org.address())
@@ -81,14 +82,14 @@ describe("Organization contract tests", () => {
     it("should fail if trying to add new member as non-owner of organization", async () => {
         let orgOwner = util.generateRandomAeWallet()
         await coop.registerWallet(orgOwner.publicKey)
-        await accounts.coop.client.spend(100000000000000000, orgOwner.publicKey)
+        await accounts.bank.client.spend(100000000000000000, orgOwner.publicKey)
 
         let org = await createOrganization(orgOwner)
         await coop.registerWallet(org.address())
 
         let nonOwner = util.generateRandomAeWallet()
         await coop.registerWallet(nonOwner.publicKey)
-        await accounts.coop.client.spend(100000000000000000, nonOwner.publicKey)
+        await accounts.bank.client.spend(100000000000000000, nonOwner.publicKey)
 
         let randomWallet = util.generateRandomAeWallet()
         await coop.registerWallet(randomWallet.publicKey)
@@ -101,7 +102,7 @@ describe("Organization contract tests", () => {
     it("should fail if trying to add new member to a non-activated organization", async () => {
         let orgOwner = util.generateRandomAeWallet()
         await coop.registerWallet(orgOwner.publicKey)
-        await accounts.coop.client.spend(100000000000000000, orgOwner.publicKey)
+        await accounts.bank.client.spend(100000000000000000, orgOwner.publicKey)
 
         let org = await createOrganization(orgOwner)
 
@@ -115,7 +116,7 @@ describe("Organization contract tests", () => {
     it("should fail if trying to add non-activated member to organization", async () => {
         let orgOwner = util.generateRandomAeWallet()
         await coop.registerWallet(orgOwner.publicKey)
-        await accounts.coop.client.spend(100000000000000000, orgOwner.publicKey)
+        await accounts.bank.client.spend(100000000000000000, orgOwner.publicKey)
 
         let org = await createOrganization(orgOwner)
         await coop.registerWallet(org.address())
@@ -128,12 +129,12 @@ describe("Organization contract tests", () => {
     it("should fail if trying to confirm membership on non-active organization", async () => {
         let orgOwner = util.generateRandomAeWallet()
         await coop.registerWallet(orgOwner.publicKey)
-        await accounts.coop.client.spend(100000000000000000, orgOwner.publicKey)
+        await accounts.bank.client.spend(100000000000000000, orgOwner.publicKey)
         
         let org = await createOrganization(orgOwner)
         let member = util.generateRandomAeWallet()
         await coop.registerWallet(member.publicKey)
-        await accounts.coop.client.spend(100000000000000000, member.publicKey)
+        await accounts.bank.client.spend(100000000000000000, member.publicKey)
 
         let memberOrgInstance = await org.getInstance(member)
         let forbiddenCall = memberOrgInstance.confirmMembership()
@@ -143,13 +144,13 @@ describe("Organization contract tests", () => {
     it("should fail if trying to confirm organization membership of a non-activated wallet", async () => {
         let orgOwner = util.generateRandomAeWallet()
         await coop.registerWallet(orgOwner.publicKey)
-        await accounts.coop.client.spend(100000000000000000, orgOwner.publicKey)
+        await accounts.bank.client.spend(100000000000000000, orgOwner.publicKey)
         
         let org = await createOrganization(orgOwner)
         await coop.registerWallet(org.address())
 
         let member = util.generateRandomAeWallet()
-        await accounts.coop.client.spend(100000000000000000, member.publicKey)
+        await accounts.bank.client.spend(100000000000000000, member.publicKey)
         let memberOrgInstance = await org.getInstance(member)
         let forbiddenCall = memberOrgInstance.confirmMembership()
         await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_4U9ubHkgcmVnaXN0ZXJlZCBDb29wZXJhdGl2ZSBtZW1iZXIgY2FuIG1ha2UgdGhpcyBhY3Rpb24uLqRHiA==. Decoded: �Only registered Cooperative member can make this action..�G�")
@@ -158,14 +159,14 @@ describe("Organization contract tests", () => {
     it("should fail if trying to confirm organization membership but invitation does not exist", async () => {
         let orgOwner = util.generateRandomAeWallet()
         await coop.registerWallet(orgOwner.publicKey)
-        await accounts.coop.client.spend(100000000000000000, orgOwner.publicKey)
+        await accounts.bank.client.spend(100000000000000000, orgOwner.publicKey)
         
         let org = await createOrganization(orgOwner)
         await coop.registerWallet(org.address())
 
         let member = util.generateRandomAeWallet()
         await coop.registerWallet(member.publicKey)
-        await accounts.coop.client.spend(100000000000000000, member.publicKey)
+        await accounts.bank.client.spend(100000000000000000, member.publicKey)
 
         let memberOrgInstance = await org.getInstance(member)
         let forbiddenCall = memberOrgInstance.confirmMembership()
@@ -175,14 +176,14 @@ describe("Organization contract tests", () => {
     it("should fail if trying to confirm organization membership but invite is already accepted", async () => {
         let orgOwner = util.generateRandomAeWallet()
         await coop.registerWallet(orgOwner.publicKey)
-        await accounts.coop.client.spend(100000000000000000, orgOwner.publicKey)
+        await accounts.bank.client.spend(100000000000000000, orgOwner.publicKey)
         
         let org = await createOrganization(orgOwner)
         await coop.registerWallet(org.address())
 
         let member = util.generateRandomAeWallet()
         await coop.registerWallet(member.publicKey)
-        await accounts.coop.client.spend(100000000000000000, member.publicKey)
+        await accounts.bank.client.spend(100000000000000000, member.publicKey)
         let memberOrgInstance = await org.getInstance(member)
 
         await org.addMember(member.publicKey)
@@ -195,14 +196,14 @@ describe("Organization contract tests", () => {
     it("should be able for org admin to send invite and then for member to accept the invite and become org member", async () => {
         let orgOwner = util.generateRandomAeWallet()
         await coop.registerWallet(orgOwner.publicKey)
-        await accounts.coop.client.spend(100000000000000000, orgOwner.publicKey)
+        await accounts.bank.client.spend(100000000000000000, orgOwner.publicKey)
         
         let org = await createOrganization(orgOwner)
         await coop.registerWallet(org.address())
 
         let member = util.generateRandomAeWallet()
         await coop.registerWallet(member.publicKey)
-        await accounts.coop.client.spend(100000000000000000, member.publicKey)
+        await accounts.bank.client.spend(100000000000000000, member.publicKey)
         let memberOrgInstance = await org.getInstance(member)
 
         let memberStatusBeforeInvite = await org.isMember(member.publicKey)

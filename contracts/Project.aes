@@ -3,6 +3,8 @@ contract TokenInterface =
     entrypoint approve : (address, int) => bool
     entrypoint transfer : (address, int) => bool
     entrypoint transfer_from : (address, address, int) => bool
+    entrypoint balance_of : (address) => int
+    entrypoint owner: () => address
 
 contract CoopInterface =
     entrypoint token : () => TokenInterface
@@ -20,20 +22,22 @@ contract Project =
       | RevenueSharePayout(address, int)
       | ProjectCreated
       | NewInvestment(address, int)
+      | InvestmentCancelled(address, int)
 
     record state = {
-        organization               : OrgInterface,
-        minInvestmentPerUser       : int,
-        maxInvestmentPerUser       : int,
-        investmentCap              : int,
-        endsAt                     : int,
-        investors                  : map(int, address),
-        investments                : map(address, int),
-        totalFundsRaised           : int,
-        payoutInProcess            : bool,
-        revenueToSplit             : int,
-        nextInvestorPayoutIndex    : int,
-        revenue_mint_batch_size    : int }
+        organization                        : OrgInterface,
+        minInvestmentPerUser                : int,
+        maxInvestmentPerUser                : int,
+        investmentCap                       : int,
+        endsAt                              : int,
+        canCancelInvestmentUnconditionally  : bool,
+        investors                           : map(int, address),
+        investments                         : map(address, int),
+        totalFundsRaised                    : int,
+        payoutInProcess                     : bool,
+        revenueToSplit                      : int,
+        nextInvestorPayoutIndex             : int,
+        revenue_mint_batch_size             : int }
 
     stateful entrypoint init(
         organization: OrgInterface, 
@@ -57,6 +61,7 @@ contract Project =
           maxInvestmentPerUser = maxInvestmentPerUSer,
           investmentCap = investmentCap,
           endsAt = endsAt,
+          canCancelInvestmentUnconditionally = false,
           investors = {},
           investments = {},
           totalFundsRaised = 0,
@@ -65,6 +70,12 @@ contract Project =
           nextInvestorPayoutIndex = 0,
           revenue_mint_batch_size = 10 }   // rethink about this constant (what value should it be? can we change it afterwards? etc..)
     
+    stateful entrypoint set_cancel_investment_flag(allow: bool) =
+        require(
+            only_organization_admin(),
+            "Only organization owner can allow or disallow unconditional investment cancel property!")
+        put(state{ canCancelInvestmentUnconditionally = allow })
+
     stateful entrypoint add_investments(investmentsList: list((address * int))) =
         require(
             Call.origin == state.organization.coop().owner(),
@@ -90,7 +101,30 @@ contract Project =
 
         Chain.event(NewInvestment(investor, amount))
 
-    stateful entrypoint withdraw(tokenIssuer: address, amount: int) =
+    stateful entrypoint cancel_investment() =
+        let investor = Call.caller
+        let investment = state.investments[investor = 0]
+        
+        require(
+            investment > 0,
+            "Error: Cannot cancel non-existing investment!")
+        require(
+            !state.payoutInProcess,
+            "Error: Cannot cancel investment while revenue share payout is in process!")
+        
+        if (!state.canCancelInvestmentUnconditionally)
+            require(
+                !is_completely_funded(),
+                "Error: Cannot cancel investment. Project already fully funded!")
+        
+        state.organization.coop().token().transfer(investor, investment)
+        put(state{
+            investments[investor] = 0,
+            totalFundsRaised @ raised = raised - investment })
+        Chain.event(InvestmentCancelled(investor, investment))
+
+
+    stateful entrypoint withdraw(amount: int) =
         require(
             is_completely_funded(),
             "Project investment cap not reached! Cannot withdraw funds.")
@@ -99,6 +133,11 @@ contract Project =
             only_organization_admin(),
             "Only organization owner can request withdrawal of project funds.")
 
+        require(
+            !state.payoutInProcess,
+            "Cannot withdraw funds while revenue share payout is in process.")
+
+        let tokenIssuer = state.organization.coop().token().owner()
         state.organization.coop().token().approve(tokenIssuer, amount)
     
     stateful entrypoint start_revenue_shares_payout(revenue: int) =
@@ -113,10 +152,14 @@ contract Project =
         require(
             revenue > 0,
             "Revenue is zero. Aborting.")
+
+        require(
+            state.organization.coop().token().balance_of(Contract.address) >= revenue,
+            "Cannot start revenue share payout. Project balance too low. Mint revenue to project wallet and try again!")
         
         require(
             !state.payoutInProcess,
-            "Cannot withdraw funds while revenue share payout is in process.")
+            "Cannot start revenue share payout. It is already started!")
         
         put(state{
             revenueToSplit = revenue,
@@ -126,9 +169,6 @@ contract Project =
         Chain.event(StartRevenuePayout(revenue))
     
     stateful entrypoint payout_revenue_shares() : bool =
-        require(
-            is_completely_funded(),
-            "Cannot start payout revenue shares batch while project is still in funding phase.")
         
         require(
             state.payoutInProcess,
@@ -159,7 +199,7 @@ contract Project =
         recursive_revenue_batch_payout(fromIndex, toIndex, revenue)
         state.payoutInProcess
 
-    entrypoint get_project_info() : (int * int * int * int) = (state.minInvestmentPerUser, state.maxInvestmentPerUser, state.investmentCap, state.endsAt)
+    entrypoint get_project_info() : (int * int * int * int * bool) = (state.minInvestmentPerUser, state.maxInvestmentPerUser, state.investmentCap, state.endsAt, state.payoutInProcess)
 
     entrypoint get_investment() : int = state.investments[Call.origin = 0]
 
@@ -181,10 +221,12 @@ contract Project =
         revenue: int) =
         let investor = state.investors[currentInvestorIndex]
         let investment = state.investments[investor]
-        let share = revenue * investment / state.totalFundsRaised
 
-        state.organization.coop().token().transfer(investor, share)
-        Chain.event(RevenueSharePayout(investor, share))
+        if (investment > 0)
+            let share = revenue * investment / state.totalFundsRaised
+            state.organization.coop().token().transfer(investor, share)
+            Chain.event(RevenueSharePayout(investor, share))
+        
         if (currentInvestorIndex < lastInvestorIndex)
             recursive_revenue_batch_payout(currentInvestorIndex + 1, lastInvestorIndex, revenue)
 

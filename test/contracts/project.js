@@ -23,6 +23,10 @@ class Project {
         await this.contractInstance.deploy([this.orgAddress, minPerUser, maxPerUser, cap, endsAt])
     }
 
+    async setCancelInvestmentFlag(flag) {
+        return this.contractInstance.methods.set_cancel_investment_flag(flag)
+    }
+
     async getInfo() {
         let callResult = await this.contractInstance.methods.get_project_info()
         let decoded = await callResult.decode()
@@ -55,6 +59,15 @@ class Project {
         return this.contractInstance.methods.invest(investorAddress)
     }
 
+    async withdraw(amount) {
+        let tokenAmount = util.eurToToken(amount)
+        return this.contractInstance.methods.withdraw(tokenAmount)
+    }
+
+    async cancelInvestment() {
+        return this.contractInstance.methods.cancel_investment()
+    }
+
     async getInvestment() {
         let callResult = await this.contractInstance.methods.get_investment()
         let decoded = await callResult.decode()
@@ -62,11 +75,12 @@ class Project {
     }
 
     async getInvestments() {
-        console.log(`Fetching investors in project ${this.address()}`)
         let call = await this.contractInstance.methods.get_investments()
         let investors = call.decodedResult
-        console.log("Investors decoded", investors)
-        return investors
+        return investors.reduce(function (map, record) {
+            map[record[0]] = util.tokenToEur(record[1])
+            return map
+        }, {})
     }
 
     async totalFundsRaised() {
@@ -97,25 +111,16 @@ class Project {
     }
     
     async startRevenueSharesPayout(amount) {
-        console.log(`Starting revenue share payout with amount $${amount} for project at ${this.address()} `)
         let tokenAmount = util.eurToToken(amount)
-        return util.executeWithStats(this.owner(), async () => {
-            return this.contractInstance.methods.start_revenue_shares_payout(tokenAmount)
-        })
+        return this.contractInstance.methods.start_revenue_shares_payout(tokenAmount)
     }
     
     async payoutRevenueShares() {
-        console.log(`Paying out revenue shares for project at ${this.address()}`)
-        return util.executeWithStats(this.owner(), async () => {
-            var shouldCallAgain
-            var batchCount = 1
-            do {
-                console.log(`Paying out batch ${batchCount}`)
-                let call = await this.contractInstance.methods.payout_revenue_shares()
-                shouldCallAgain = call.decodedResult
-                batchCount++
-            } while (shouldCallAgain)
-        })
+        var shouldCallAgain
+        do {
+            let call = await this.contractInstance.methods.payout_revenue_shares()
+            shouldCallAgain = call.decodedResult
+        } while (shouldCallAgain)
     }
 
     address() {

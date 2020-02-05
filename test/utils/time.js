@@ -7,7 +7,7 @@ function currentTimeWithDaysOffset(days) {
 function currentTimeWithSecondsOffset(seconds) {
     var result = new Date();
     result.setSeconds(result.getSeconds() + seconds);
-    return Math.round(result.getTime() / 1000);
+    return result.getTime();
 }
 
 function timeout(ms) {
