@@ -18,7 +18,7 @@
     "mocha": "^7.0.0",
     "randomstring": "^1.1.5",
     "readline-sync": "^1.4.10",
-    "yarn": "1.19.1"
+    "yarn": "1.22.0"
   },
   "devDependencies": {
     "bignumber.js": "^9.0.0",
