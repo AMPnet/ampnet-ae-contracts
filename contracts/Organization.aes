@@ -45,6 +45,8 @@ contract Organization =
 
     entrypoint is_verified() : bool = state.coop.is_wallet_active(Contract.address)
 
+    entrypoint is_member(member: address) = state.members[member = false]
+
     function only_owner() =
         require(Call.origin == state.owner, "Only organization owner can make this action!")
 

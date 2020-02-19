@@ -77,24 +77,6 @@ contract EUR =
 
     true
 
-  stateful entrypoint increase_allowance(spender: address, addedValue: int) : bool =
-    // require(spender != #0, "Invalid address")
-    let caller = Call.caller
-    only_coop_user(caller)
-    only_coop_user(spender)
-    put(state{ allowed[(caller, spender)] = state.allowed[(caller, spender)] + addedValue })
-
-    true
-
-  stateful entrypoint decrease_allowance(spender: address, subtractedValue: int) : bool =
-    // require(spender != #0, "Invalid address")
-    let caller = Call.caller
-    only_coop_user(caller)
-    only_coop_user(spender)
-    put(state{ allowed[(caller, spender)] = state.allowed[(caller, spender)] - subtractedValue })
-
-    true
-
   stateful entrypoint mint(account: address, value: int) : bool =
     only_owner()
     only_coop_user(account)
