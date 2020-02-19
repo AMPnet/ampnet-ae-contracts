@@ -30,7 +30,7 @@ async function generateRandomAeAddress() {
     return randAddressEncoded
 }
 
-let factor = 1000000000000000000; // 10e18 (1 EUR = 10e18 tokens)
+let factor = 1000000000000000000; // 10e18 (1 EUR = 100 * 10e18 tokens)
 
 function eurToToken(eur) {
     return fromExponential(eur * factor);

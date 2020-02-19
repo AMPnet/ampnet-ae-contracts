@@ -516,7 +516,7 @@ describe("Project contract tests", () => {
 
         let investorProjInstance = await proj.getInstance(investor)
         let forbiddenCancelInvest = investorProjInstance.cancelInvestment()
-        await expect(forbiddenCancelInvest).to.be.rejectedWith("Invocation failed: cb_tUVycm9yOiBDYW5ub3QgY2FuY2VsIG5vbi1leGlzdGluZyBpbnZlc3RtZW50Ib2yoY0=. Decoded: �Error: Cannot cancel non-existing investment!����")
+        await expect(forbiddenCancelInvest).to.be.rejectedWith("Invocation failed: cb_ZUNhbm5vdCBjYW5jZWwgaW52ZXN0bWVudCEqQq8k. Decoded: eCannot cancel investment!*B�$")
     })
 
     it("should fail to cancel investment if project fully funded", async () => {
@@ -543,7 +543,7 @@ describe("Project contract tests", () => {
         
         let investorProjInstance = await proj.getInstance(investor)
         let forbiddenCancelInvest = investorProjInstance.cancelInvestment()
-        await expect(forbiddenCancelInvest).to.be.rejectedWith("Invocation failed: cb_+UVycm9yOiBDYW5ub3QgY2FuY2VsIGludmVzdG1lbnQuIFByb2plY3QgYWxyZWFkeSBmdWxseSBmdW5kZWQheNmZbg==. Decoded: �Error: Cannot cancel investment. Project already fully funded!xٙn")
+        await expect(forbiddenCancelInvest).to.be.rejectedWith("Invocation failed: cb_ZUNhbm5vdCBjYW5jZWwgaW52ZXN0bWVudCEqQq8k. Decoded: eCannot cancel investment!*B�$")
     })
 
     it("should be able for project admin to payout revenue shares to its investors after project funded and operational", async () => {
