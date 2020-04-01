@@ -5,12 +5,13 @@
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha --timeout 800000",
-    "generateKey": "node -e 'require(\"./util/util\").generateKey()'"
+    "generateKey": "node -e 'require(\"./util/util\").generateKey()'",
+    "displayKey": "node -e 'require(\"./util/util\").displayKey()'"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@aeternity/aepp-sdk": "6.1.3",
+    "@aeternity/aepp-sdk": "^7.2.1",
     "aeproject-lib": "^1.0.0",
     "cryptr": "^4.0.2",
     "dotenv": "^8.0.0",

@@ -4,7 +4,6 @@ async function deploy(accounts) {
     let coopInstance = await accounts.coop.client.getContractInstance(contracts.coopSource)
     let eurInstance = await accounts.eur.client.getContractInstance(contracts.eurSource)
 
-
     console.log("Deploying Coop")   
     let coop = await coopInstance.deploy()
     console.log(`Coop deployed on ${coop.address}\n`)

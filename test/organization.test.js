@@ -1,4 +1,4 @@
-let Ae = require('@aeternity/aepp-sdk').Universal
+let { Universal: Ae, Node, MemoryAccount } = require('@aeternity/aepp-sdk')
 let AeConfig = require('./init/config').local
 
 const chai = require('chai')
@@ -223,9 +223,18 @@ describe("Organization contract tests", () => {
     ///////////// --------- HELPERS ----------- ////////////
 
     async function createOrganization(keypair) {
+        let node = await Node({
+            url: AeConfig.url,
+            internalUrl: AeConfig.internalUrl
+        })
         let client = await Ae({
-            ...AeConfig,
-            keypair: keypair
+            nodes: [ { name: "node", instance: node } ],
+            compilerUrl: AeConfig.compilerUrl,
+            accounts: [
+                MemoryAccount({ keypair: keypair })
+            ],
+            address: keypair.publicKey,
+            networkId: AeConfig.networkId
         })
         let org = new Organization(coop.address(), client)
         await org.deploy()

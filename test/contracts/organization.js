@@ -1,4 +1,4 @@
-let Ae = require('@aeternity/aepp-sdk').Universal
+let { Universal: Ae, Node, MemoryAccount } = require('@aeternity/aepp-sdk')
 let AeConfig = require('../init/config').local
 let source = require('../init/contracts').orgSource
 let util = require('../utils/util')
@@ -42,11 +42,19 @@ class Organization {
     }
 
     async getInstance(keypair) {
-        let config = {
-            ...AeConfig,
-            keypair: keypair
-        }
-        let client = await Ae(config)
+        let node = await Node({
+            url: AeConfig.url,
+            internalUrl: AeConfig.internalUrl
+        })
+        let client = await Ae({
+            nodes: [ { name: "node", instance: node } ],
+            compilerUrl: AeConfig.compilerUrl,
+            accounts: [
+                MemoryAccount({ keypair: keypair })
+            ],
+            address: keypair.publicKey,
+            networkId: AeConfig.networkId
+        })
         let instance = await client.getContractInstance(source, {
             contractAddress: this.address()
         })

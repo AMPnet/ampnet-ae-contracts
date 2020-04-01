@@ -14,7 +14,8 @@
  *  OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  *  PERFORMANCE OF THIS SOFTWARE.
  */
-let Ae = require('@aeternity/aepp-sdk').Universal
+
+let { Universal: Ae, Node, MemoryAccount } = require('@aeternity/aepp-sdk')
 
 let fs = require('fs')
 let path = require('path')
@@ -48,12 +49,19 @@ const deploy = async (network, privateKey) => {
 		default:
 			throw new Error('Wrong network specified while runnging deploy script. Expected local/testnet/mainnet as network parameter!')
 	}
-
+	
+	let node = await Node({
+		url: url,
+		internalUrl: url
+	})
 	let client = await Ae({
-        url: url,
-        keypair: ownerKeypair,
-		networkId: networkId,
-		compilerUrl: compilerUrl
+		nodes: [ { name: "node", instance: node } ],
+		compilerUrl: compilerUrl,
+		accounts: [
+			MemoryAccount({ keypair: ownerKeypair })
+		],
+		address: ownerKeypair.publicKey,
+		networkId: networkId
 	})
 
 	let coopSource = fs.readFileSync(path.join(__dirname, '..', 'contracts', 'Coop.aes')).toString('utf-8')

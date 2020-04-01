@@ -1,4 +1,4 @@
-const Ae = require('@aeternity/aepp-sdk').Universal
+const { Universal: Ae, Node, MemoryAccount } = require('@aeternity/aepp-sdk')
 const config = require("./config").local
 
 let mainClient
@@ -6,6 +6,11 @@ let mainClient
 function main() { return mainClient }
 
 async function initialize(wallets) {
+    let node = await Node({
+        url: config.url,
+        internalUrl: config.internalUrl
+    })
+
     let bankKeypair = {
         publicKey: "ak_2mwRmUeYmfuW93ti9HMSUJzCk1EYcQEfikVSzgo6k2VghsWhgU",
         secretKey: "bb9f0b01c8c9553cfbaf7ef81a50f977b1326801ebf7294d1c2cbccdedf27476e9bbf604e611b5460a3b3999e9771b6f60417d73ce7c5519e12f7e127a1225ca"
@@ -13,40 +18,65 @@ async function initialize(wallets) {
     let bankAddress = bankKeypair.publicKey
     let bankPrivateKey = bankKeypair.secretKey
     let bankClient = await Ae({
-        ...config,
-        keypair: bankKeypair
+        nodes: [ { name: "node", instance: node }],
+        compilerUrl: config.compilerUrl,
+        accounts: [
+            MemoryAccount({ keypair: bankKeypair })
+        ],
+        address: bankAddress,
+        networkId: config.networkId
     })
 
     let coopKeypair = wallets[0]
     let coopAddress = wallets[0].publicKey
     let coopPrivateKey = wallets[0].secretKey
     let coopClient = await Ae({
-        ...config,
-        keypair: coopKeypair
+        nodes: [ { name: "node", instance: node }],
+        compilerUrl: config.compilerUrl,
+        accounts: [
+            MemoryAccount({ keypair: coopKeypair })
+        ],
+        address: coopAddress,
+        networkId: config.networkId
     })
 
     let eurKeypair = wallets[1]
     let eurAddress = wallets[1].publicKey
     let eurPrivateKey = wallets[1].secretKey
     let eurClient = await Ae({
-        ...config,
-        keypair: eurKeypair
+        nodes: [ { name: "node", instance: node }],
+        compilerUrl: config.compilerUrl,
+        accounts: [
+            MemoryAccount({ keypair: eurKeypair })
+        ],
+        address: eurAddress,
+        networkId: config.networkId
     })
 
     let bobKeypair = wallets[2]
     let bobAddress = wallets[2].publicKey
     let bobPrivateKey = wallets[2].secretKey
     let bobClient = await Ae({
-        ...config,
-        keypair: bobKeypair
+        nodes: [ { name: "node", instance: node }],
+        compilerUrl: config.compilerUrl,
+        accounts: [
+            MemoryAccount({ keypair: bobKeypair })
+        ],
+        address: bobAddress,
+        networkId: config.networkId
     })
 
     let aliceKeypair = wallets[3]
     let aliceAddress = wallets[3].publicKey
     let alicePrivateKey = wallets[3].secretKey
     let aliceClient = await Ae({
-        ...config,
-        keypair: aliceKeypair
+        nodes: [ { name: "node", instance: node }],
+        compilerUrl: config.compilerUrl,
+        accounts: [
+            MemoryAccount({ keypair: aliceKeypair })
+        ],
+        address: aliceAddress,
+        networkId: config.networkId
     })
 
     mainClient = coopClient

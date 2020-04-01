@@ -56,4 +56,13 @@ function generateKey() {
     console.log(`Successfully generated and stored keypair in encrypted form.\nAddress: ${address}`)
 }
 
-module.exports = { loadKey, generateKey }
+/**
+ * Displays decrypted key in plain text if correct password provided.
+ * WARNING: Watch your back.
+ */
+function displayKey() {
+    let keypair = loadKey();
+    console.log("Keypair:\n", keypair)
+}
+
+module.exports = { loadKey, generateKey, displayKey }
