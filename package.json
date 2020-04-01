@@ -14,7 +14,7 @@
     "@aeternity/aepp-sdk": "^7.2.1",
     "aeproject-lib": "^1.0.0",
     "cryptr": "^4.0.2",
-    "dotenv": "^8.0.0",
+    "dotenv": "^8.2.0",
     "lodash": "^4.17.15",
     "mocha": "^7.0.0",
     "randomstring": "^1.1.5",
