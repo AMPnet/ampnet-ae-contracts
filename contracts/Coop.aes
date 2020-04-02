@@ -5,6 +5,7 @@ contract Coop =
 
     datatype event =
         WalletAdded(address)
+      | CoopOwnershipChanged(address)
 
     record state = {
         owner                      : address,
@@ -19,6 +20,7 @@ contract Coop =
     stateful entrypoint transfer_ownership(newOwner: address) =
         only_owner()
         put(state{ owner = newOwner })
+        Chain.event(CoopOwnershipChanged(newOwner))
     
     stateful entrypoint set_token(token: TokenInterface) =
         only_owner()

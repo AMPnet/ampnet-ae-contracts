@@ -7,6 +7,7 @@ contract EUR =
       TokensMinted(address, int)
     | ApproveSpender(address, int)
     | TokensBurned(address, int)
+    | EurOwnershipChanged(address)
 
   record state = {
     owner            : address,
@@ -33,6 +34,7 @@ contract EUR =
   stateful entrypoint transfer_ownership(newOwner: address) =
     only_owner()
     put(state{ owner = newOwner })
+    Chain.event(EurOwnershipChanged(newOwner))
 
   stateful entrypoint transfer(to: address, value: int) : bool =
     let caller = Call.caller
@@ -103,7 +105,7 @@ contract EUR =
 
   function only_owner() =
       let caller = Call.caller
-      require(caller == state.owner, "Only owner can mint!")
+      require(caller == state.owner, "Only owner can make this action!")
 
   function only_coop_user(wallet: address) =
     require(state.coop.is_wallet_active(wallet), "Only registered Cooperative user can make this action!")
