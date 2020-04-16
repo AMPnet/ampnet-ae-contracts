@@ -55,9 +55,9 @@ describe("EUR contract tests", () => {
             contractAddress: eur.address()
         })
         let forbiddenMint = eurInstance.methods.mint(randomWallet.publicKey, 1000000)
-        await expect(forbiddenMint).to.be.rejectedWith("Invocation failed: cb_UU9ubHkgb3duZXIgY2FuIG1pbnQhvfwVEw==. Decoded: QOnly owner can mint!��")
+        await expect(forbiddenMint).to.be.rejectedWith("Invocation failed: cb_gU9ubHkgb3duZXIgY2FuIG1ha2UgdGhpcyBhY3Rpb24hEKNgCg==. Decoded: �Only owner can make this action!\u0010�`\n")
     })
-
+    
     it("can burn tokens if user allowed token issuer to do so (withdraw option)", async () => {
         let randomWallet = util.generateRandomAeWallet()
 
@@ -129,7 +129,7 @@ describe("EUR contract tests", () => {
         let randomWalletEurInstance = await eur.getInstance(randomWallet)
         let forbiddenBurn = randomWalletEurInstance.burn(randomWallet.publicKey, amount)
 
-        await expect(forbiddenBurn).to.be.rejectedWith("cb_UU9ubHkgb3duZXIgY2FuIG1pbnQhvfwVEw==. Decoded: QOnly owner can mint!��")
+        await expect(forbiddenBurn).to.be.rejectedWith("Invocation failed: cb_gU9ubHkgb3duZXIgY2FuIG1ha2UgdGhpcyBhY3Rpb24hEKNgCg==. Decoded: �Only owner can make this action!\u0010�`\n")
     })
 
 })

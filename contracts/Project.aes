@@ -132,26 +132,8 @@ contract Project =
         Chain.event(ApproveWithdrawProjectFunds(tokenIssuer, amount))
     
     stateful entrypoint start_revenue_shares_payout(revenue: int) =
-        require(
-            only_organization_admin(),
-            "Only organization owner can initiate revenue shares payout.")
+        check_share_payout_preconditions(Call.origin, revenue)
 
-        require(
-            is_completely_funded(),
-            "Cannot start revenue share payout on project which is still in funding phase.")
-
-        require(
-            revenue > 0,
-            "Revenue is zero. Aborting.")
-
-        require(
-            state.organization.coop().token().balance_of(Contract.address) >= revenue,
-            "Cannot start revenue share payout. Project balance too low. Mint revenue to project wallet and try again!")
-        
-        require(
-            !state.payoutInProcess,
-            "Cannot start revenue share payout. It is already started!")
-        
         put(state{
             revenueToSplit = revenue,
             payoutInProcess = true,
@@ -237,7 +219,7 @@ contract Project =
             [] => 0
             
 
-    function check_investment_preconditions(investor: address, amount: int) =
+    entrypoint check_investment_preconditions(investor: address, amount: int) =
         let usersPreviousTotalInvestment = state.investments[investor = 0]
         let usersNewTotalInvestment = usersPreviousTotalInvestment + amount
         let projectNewTotalInvestment = state.totalFundsRaised + amount
@@ -250,6 +232,10 @@ contract Project =
         require(
             amount > 0,
             "Can not invest zero tokens!")
+
+        require(
+            state.organization.coop().token().balance_of(investor) >= amount,
+            "Can not invest. Insufficient funds.")
         
         require(
             usersNewTotalInvestment =< state.maxInvestmentPerUser,
@@ -270,6 +256,27 @@ contract Project =
         require(
             !has_funding_expired(),
             "Project funding has ended.")
+
+    entrypoint check_share_payout_preconditions(caller: address, revenue: int) =
+        require(
+            caller == state.organization.owner(),
+            "Only organization owner can initiate revenue shares payout.")
+
+        require(
+            is_completely_funded(),
+            "Cannot start revenue share payout on project which is still in funding phase.")
+
+        require(
+            revenue > 0,
+            "Revenue is zero. Aborting.")
+
+        require(
+            state.organization.coop().token().balance_of(Contract.address) >= revenue,
+            "Cannot start revenue share payout. Project balance too low. Mint revenue to project wallet and try again!")
+        
+        require(
+            !state.payoutInProcess,
+            "Cannot start revenue share payout. It is already started!")
 
     stateful function persist_investment(investor: address, amount: int) = 
         if (!Map.member(investor, state.investments))
