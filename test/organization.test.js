@@ -51,7 +51,7 @@ describe("Organization contract tests", () => {
         let randomWallet = util.generateRandomAeWallet()
         await accounts.bank.client.spend(100000000000000000, randomWallet.publicKey)
         let forbiddenOrgCreate = createOrganization(randomWallet)
-        await expect(forbiddenOrgCreate).to.be.rejectedWith("Invocation failed: cb_AQZDYW5ub3QgY3JlYXRlIE9yZ2FuaXphdGlvbiwgY2FsbGVyIG5vdCByZWdpc3RlcmVkIENvb3BlcmF0aXZlIHVzZXIuxcGeqw==. Decoded: \u0001\u0006Cannot create Organization, caller not registered Cooperative user.����")
+        await expect(forbiddenOrgCreate).to.be.rejectedWith("Invocation failed: cb_ATwjQ2FuIG5vdCBjcmVhdGUgb3JnYW5pemF0aW9uLiBDcmVhdG9yIG11c3QgYmUgcmVnaXN0ZXJlZCBwbGF0Zm9ybSB1c2VyIHdpdGggYWN0aXZhdGVkIHdhbGxldC4jwtUY6Q==. Decoded: \u0001<#Can not create organization. Creator must be registered platform user with activated wallet.#��\u0018�")
     })
 
     it("has no active wallet by default", async () => {
@@ -96,7 +96,7 @@ describe("Organization contract tests", () => {
 
         let nonOwnerOrgInstance = await org.getInstance(nonOwner)
         let forbiddenCall = nonOwnerOrgInstance.addMember(randomWallet.publicKey)
-        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_tU9ubHkgb3JnYW5pemF0aW9uIG93bmVyIGNhbiBtYWtlIHRoaXMgYWN0aW9uId9AP58=. Decoded: �Only organization owner can make this action!�@?�")
+        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_vSNPbmx5IG9yZ2FuaXphdGlvbiBvd25lciBjYW4gbWFrZSB0aGlzIGFjdGlvbiEjdXaHgQ==. Decoded: �#Only organization owner can make this action!#uv��")
     })
 
     it("should fail if trying to add new member to a non-activated organization", async () => {
@@ -110,7 +110,7 @@ describe("Organization contract tests", () => {
         await coop.registerWallet(randomWallet.publicKey)
 
         let forbiddenCall = org.addMember(randomWallet.publicKey)
-        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_lU9yZ2FuaXphdGlvbiBtdXN0IGhhdmUgYWN0aXZlIHdhbGxldCHYjB6E. Decoded: �Organization must have active wallet!،\u001e�")
+        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_AQgjSW4gb3JkZXIgdG8gbWFrZSB0aGlzIGFjdGlvbiBvcmdhbml6YXRpb24gbXVzdCBoYXZlIGFjdGl2ZSB3YWxsZXQhI+3DOmM=. Decoded: \u0001\b#In order to make this action organization must have active wallet!#��:c")
     })
 
     it("should fail if trying to add non-activated member to organization", async () => {
@@ -123,7 +123,7 @@ describe("Organization contract tests", () => {
 
         let randomWallet = util.generateRandomAeWallet()
         let forbiddenCall = org.addMember(randomWallet.publicKey)
-        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_4U9ubHkgcmVnaXN0ZXJlZCBDb29wZXJhdGl2ZSBtZW1iZXIgY2FuIG1ha2UgdGhpcyBhY3Rpb24uLqRHiA==. Decoded: �Only registered Cooperative member can make this action..�G�")
+        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_ATYjTWVtYmVyIHRvIGJlIGFkZGVkIHRvIG9yZ2FuaXphdGlvbiBoYXMgdG8gYmUgcmVnaXN0ZXJlZCBwbGF0Zm9ybSB1c2VyIHdpdGggYWN0aXZlIHdhbGxldC4jdDOuBA==. Decoded: \u00016#Member to be added to organization has to be registered platform user with active wallet.#t3�\u0004")
     })
 
     it("should fail if trying to confirm membership on non-active organization", async () => {
@@ -138,7 +138,7 @@ describe("Organization contract tests", () => {
 
         let memberOrgInstance = await org.getInstance(member)
         let forbiddenCall = memberOrgInstance.confirmMembership()
-        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_lU9yZ2FuaXphdGlvbiBtdXN0IGhhdmUgYWN0aXZlIHdhbGxldCHYjB6E. Decoded: �Organization must have active wallet!،\u001e�")
+        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_AQgjSW4gb3JkZXIgdG8gbWFrZSB0aGlzIGFjdGlvbiBvcmdhbml6YXRpb24gbXVzdCBoYXZlIGFjdGl2ZSB3YWxsZXQhI+3DOmM=. Decoded: \u0001\b#In order to make this action organization must have active wallet!#��:c")
     })
 
     it("should fail if trying to confirm organization membership of a non-activated wallet", async () => {
@@ -153,7 +153,7 @@ describe("Organization contract tests", () => {
         await accounts.bank.client.spend(100000000000000000, member.publicKey)
         let memberOrgInstance = await org.getInstance(member)
         let forbiddenCall = memberOrgInstance.confirmMembership()
-        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_4U9ubHkgcmVnaXN0ZXJlZCBDb29wZXJhdGl2ZSBtZW1iZXIgY2FuIG1ha2UgdGhpcyBhY3Rpb24uLqRHiA==. Decoded: �Only registered Cooperative member can make this action..�G�")
+        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_ARQjT25seSByZWdpc3RlcmVkIHBsYXRmb3JtIG1lbWJlciB3aXRoIGFjdGl2ZSB3YWxsZXQgY2FuIG1ha2UgdGhpcyBhY3Rpb24uIzKDkeY=. Decoded: \u0001\u0014#Only registered platform member with active wallet can make this action.#2���")
     })
 
     it("should fail if trying to confirm organization membership but invitation does not exist", async () => {
@@ -170,7 +170,7 @@ describe("Organization contract tests", () => {
 
         let memberOrgInstance = await org.getInstance(member)
         let forbiddenCall = memberOrgInstance.confirmMembership()
-        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_+VVzZXIgdHJpZWQgdG8gYWNjZXB0IE9yZ2FuaXphdGlvbiBpbnZpdGUgd2hpY2ggZG9lcyBub3QgZXhpc3QhG+yzeQ==. Decoded: �User tried to accept Organization invite which does not exist!\u001b�y")
+        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_8SNUcnlpbmcgdG8gYWNjZXB0IG9yZ2FuaXphdGlvbiBpbnZpdGUgd2hpY2ggZG9lcyBub3QgZXhpc3QhIzrQ0n4=. Decoded: �#Trying to accept organization invite which does not exist!#:��~")
     })
 
     it("should fail if trying to confirm organization membership but invite is already accepted", async () => {
@@ -190,7 +190,7 @@ describe("Organization contract tests", () => {
         await memberOrgInstance.confirmMembership()
         
         let forbiddenCall = memberOrgInstance.confirmMembership()
-        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_AQhVc2VyIHRyaWVkIHRvIGFjY2VwdCBPcmdhbml6YXRpb24gaW52aXRlIGJ1dCBpdCBpcyBhbHJlYWR5IGFjY2VwdGVkIX0KLW8=. Decoded: \u0001\bUser tried to accept Organization invite but it is already accepted!}\n-o")
+        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_AQYjVHJ5aW5nIHRvIGFjY2VwdCBvcmdhbml6YXRpb24gaW52aXRlIGJ1dCBpdCB3YXMgYWxyZWFkeSBhY2NlcHRlZCEjzRetrg==. Decoded: \u0001\u0006#Trying to accept organization invite but it was already accepted!#�\u0017��")
     })
 
     it("should be able for org admin to send invite and then for member to accept the invite and become org member", async () => {

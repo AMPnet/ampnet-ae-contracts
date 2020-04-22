@@ -43,7 +43,7 @@ contract Coop =
 
     entrypoint token() : TokenInterface = 
         switch (state.token)
-            None => abort("Token not initalized!")
+            None => abort("#Token not initalized!#")
             Some(token) => token
 
     stateful function recursive_wallets_add(wallets: list(address)) : int =
@@ -54,4 +54,4 @@ contract Coop =
             [] => 0
 
     function only_owner() =
-        require(Call.origin == state.owner, "Only owner can make this action!")
+        require(Call.origin == state.owner, "#Only Platform Manager can make this action!#")

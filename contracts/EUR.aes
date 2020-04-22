@@ -32,23 +32,23 @@ contract EUR =
   entrypoint allowance(owner: address, spender: address) : int = Map.lookup_default((owner, spender), state.allowed, 0)
 
   stateful entrypoint transfer_ownership(newOwner: address) =
-    only_owner()
+    only_owner("")
     put(state{ owner = newOwner })
     Chain.event(EurOwnershipChanged(newOwner))
 
   stateful entrypoint transfer(to: address, value: int) : bool =
     let caller = Call.caller
-    only_coop_user(caller)
-    only_coop_user(to)
+    only_coop_user(caller, "#Sender wallet not activated. Activate your blockchain wallet before sending funds.#")
+    only_coop_user(to, "#Receiver wallet not activated. Transfer aborted.#")
     _transfer(caller, to, value)
 
   stateful entrypoint approve(spender: address, value: int) : bool = 
     let caller = Call.caller
-    only_coop_user(caller)
+    only_coop_user(caller, "#Wallet not activated. Activate your wallet before approving funds withdrawal.#")
     if (spender != state.owner)
-      only_coop_user(spender)
+      only_coop_user(spender, "#Invalid Token Issuer wallet provided.#")
 
-    require(value > 0, "Value is sub zero")
+    require(value > 0, "#Amount of funds to be approved for withdrawal must be grater than 0.#")
     // require(spender != #0, "Invalid spender address")
 
     put(state{ allowed[(caller, spender)] = value })
@@ -56,8 +56,8 @@ contract EUR =
     true
 
   stateful function _transfer(from: address, to: address, value: int) : bool =
-    require(value > 0, "Value is sub zero")
-    require(value =< balance_of(from), "Not enough balance")
+    require(value > 0, "#Amount of funds to transfer must be grater than 0.#")
+    require(value =< balance_of(from), "#Insufficient funds on user's wallet to make the transfer.#")
     // require(to != #0, "Invalid address")
 
     put(state{
@@ -68,11 +68,11 @@ contract EUR =
 
   stateful entrypoint transfer_from(from: address, to: address, value: int) : bool =
     let caller = Call.caller
-    only_coop_user(caller)
-    only_coop_user(from)
-    only_coop_user(to)
+    only_coop_user(caller, "#User's wallet not activated. Activate your blockchain wallet before initiating funds transfer.#")
+    only_coop_user(from, "#Sender wallet not activated. Sender has to have activated blockchain wallet before approving funds for transfer.#")
+    only_coop_user(to, "#Receiver wallet not activated. Receiver has to have activated blockchain wallet before receiving any funds.#")
     
-    require(state.allowed[(from, caller)] >= value, "Value is bigger than allowed")
+    require(state.allowed[(from, caller)] >= value, "")
       
     put(state{ allowed[(from, caller)] = state.allowed[(from, caller)] - value })
     _transfer(from, to, value)
@@ -80,8 +80,8 @@ contract EUR =
     true
 
   stateful entrypoint mint(account: address, value: int) : bool =
-    only_owner()
-    only_coop_user(account)
+    only_owner("")
+    only_coop_user(account, "#Only registered platform users with active wallets can get their deposits approved. Aborting.#")
     // require(account != #0, "Invalid address")
 
     put(state{ totalSupply = state.totalSupply + value,
@@ -91,10 +91,10 @@ contract EUR =
 
   stateful entrypoint burn(account: address, value: int) : bool =
     let caller = Call.caller
-    only_owner()
-    only_coop_user(account)
-    require(state.allowed[(account, caller)] >= value, "Value to be burned is bigger than allowed.")
-    require(state.balances[account] >= value, "Value to be burned is not present")
+    only_owner("")
+    only_coop_user(account, "#Only registered platform users with active wallets can withdraw funds. Aborting.#")
+    require(state.allowed[(account, caller)] >= value, "#Value to be withdrawn is bigger than allowed.#")
+    require(state.balances[account] >= value, "#Value to be withdrawn is not present.#")
 
     put(state{ totalSupply = state.totalSupply - value,
           balances[account] = balance_of(account) - value })
@@ -103,9 +103,11 @@ contract EUR =
 
   function lookup_by_address(k : address, m, v) = Map.lookup_default(k, m, v)
 
-  function only_owner() =
-      let caller = Call.caller
-      require(caller == state.owner, "Only owner can make this action!")
+  function only_owner(errMsg: string) =
+    let message = if (errMsg == "") "#Only Token Issuer can make this action!#" else errMsg
+    let caller = Call.caller
+    require(caller == state.owner, message)
 
-  function only_coop_user(wallet: address) =
-    require(state.coop.is_wallet_active(wallet), "Only registered Cooperative user can make this action!")
+  function only_coop_user(wallet: address, errMsg: string) =
+    let message = if (errMsg == "") "#Only registered platform user with activated wallet can make this action!#" else errMsg
+    require(state.coop.is_wallet_active(wallet), errMsg)

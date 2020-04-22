@@ -87,7 +87,7 @@ describe("Project contract tests", () => {
         await accounts.bank.client.spend(100000000000000000, notOwner.publicKey)
 
         let forbiddenProjectCreate = createProject(org, notOwner, projectInfo)
-        await expect(forbiddenProjectCreate).to.be.rejectedWith("Invocation failed: cb_4U11c3QgYmUgb3JnYW5pemF0aW9uIG93bmVyIHRvIGJlIGFibGUgdG8gY3JlYXRlIFByb2plY3Qub3u5pA==. Decoded: �Must be organization owner to be able to create Project.o{��")
+        await expect(forbiddenProjectCreate).to.be.rejectedWith("Invocation failed: cb_AQwjTXVzdCBiZSBvcmdhbml6YXRpb24gb3duZXIgdG8gYmUgYWJsZSB0byBjcmVhdGUgcHJvamVjdCBmb3IgZnVuZGluZy4jeS34bg==. Decoded: \u0001\f#Must be organization owner to be able to create project for funding.#y-�n")
     })
 
     it("should fail to create project if organization is not verified", async () => {
@@ -99,7 +99,7 @@ describe("Project contract tests", () => {
         
         let org = await createOrganization(orgOwner)
         let forbiddenProjectCreate = createProject(org, orgOwner, projectInfo)
-        await expect(forbiddenProjectCreate).to.be.rejectedWith("Invocation failed: cb_ARJPcmdhbml6YXRpb24gbXVzdCBoYXZlIGFuIGFjdGl2ZSB3YWxsZXQgYmVmb3JlIGl0IGNhbiBjcmVhdGUgbmV3IFByb2plY3QuIUxpOA==. Decoded: \u0001\u0012Organization must have an active wallet before it can create new Project.!Li8")
+        await expect(forbiddenProjectCreate).to.be.rejectedWith("Invocation failed: cb_AS4jT3JnYW5pemF0aW9uIG11c3QgaGF2ZSBhbiBhY3RpdmUgd2FsbGV0IGJlZm9yZSBpdCBjYW4gY3JlYXRlIG5ldyBwcm9qZWN0IGZvciBmdW5kaW5nIy7xVA+v. Decoded: \u0001.#Organization must have an active wallet before it can create new project for funding#.�T\u000f�")
     })
 
     it("can process new user investment", async () => {
@@ -196,7 +196,7 @@ describe("Project contract tests", () => {
         await unluckyInvestorEurInstance.approve(proj.address(), unluckyInvestmentAmount)
         
         let forbiddenInvestCall = proj.invest(unluckyInvestor.publicKey)
-        await expect(forbiddenInvestCall).to.be.rejectedWith("Invocation failed: cb_yUNhbiBub3QgaW52ZXN0LCBwcm9qZWN0IGFscmVhZHkgY29tcGxldGVseSBmdW5kZWQu52wRvw==. Decoded: �Can not invest, project already completely funded.�l\u0011�")
+        await expect(forbiddenInvestCall).to.be.rejectedWith("Invocation failed: cb_0SNDYW4gbm90IGludmVzdCwgcHJvamVjdCBhbHJlYWR5IGNvbXBsZXRlbHkgZnVuZGVkLiNkUaYp. Decoded: �#Can not invest, project already completely funded.#dQ�")
     })
 
     it("should fail to process investment if trying to invest 0 tokens", async () => {
@@ -217,7 +217,7 @@ describe("Project contract tests", () => {
         await accounts.bank.client.spend(100000000000000000, investor.publicKey)
 
         let forbiddenCall = proj.invest(investor.publicKey)
-        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_bUNhbiBub3QgaW52ZXN0IHplcm8gdG9rZW5zIRIYreE=. Decoded: mCan not invest zero tokens!\u0012\u0018��")
+        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_dSNDYW4gbm90IGludmVzdCB6ZXJvIHRva2VucyEj3b+ndw==. Decoded: u#Can not invest zero tokens!#ݿ�w")
     })
 
     it("should fail if user's single investment or additional investment will surpass maxPerUser limit", async () => {
@@ -243,13 +243,13 @@ describe("Project contract tests", () => {
         await investorEurInstance.approve(proj.address(), singleInvestmentOutOfBounds)
         
         let forbiddenSingleInvestment = proj.invest(investor.publicKey)
-        await expect(forbiddenSingleInvestment).to.be.rejectedWith("Invocation failed: cb_ASxVc2VyJ3MgaW52ZXN0bWVudCB3aWxsIHN1cnBhc3MgbWF4aW11bSBwZXItdXNlciBpbnZlc3RtZW50IGZvciB0aGlzIHByb2plY3QuIEFib3J0aW5nLhXE0g4=. Decoded: \u0001,User\'s investment will surpass maximum per-user investment for this project. Aborting.\u0015��\u000e")
+        await expect(forbiddenSingleInvestment).to.be.rejectedWith("Invocation failed: cb_ATAjVXNlcidzIGludmVzdG1lbnQgd2lsbCBzdXJwYXNzIG1heGltdW0gcGVyIHVzZXIgaW52ZXN0bWVudCBmb3IgdGhpcyBwcm9qZWN0LiBBYm9ydGluZy4jWAF2VQ==. Decoded: \u00010#User\'s investment will surpass maximum per user investment for this project. Aborting.#X\u0001vU")
     
         await investorEurInstance.approve(proj.address(), projectInfo.minInvestmentPerUser)
         await proj.invest(investor.publicKey)
         await investorEurInstance.approve(proj.address(), singleInvestmentOutOfBounds - projectInfo.minInvestmentPerUser)
         let forbiddenAdditionalInvestment = proj.invest(investor.publicKey)
-        await expect(forbiddenAdditionalInvestment).to.be.rejectedWith("Invocation failed: cb_ASxVc2VyJ3MgaW52ZXN0bWVudCB3aWxsIHN1cnBhc3MgbWF4aW11bSBwZXItdXNlciBpbnZlc3RtZW50IGZvciB0aGlzIHByb2plY3QuIEFib3J0aW5nLhXE0g4=. Decoded: \u0001,User\'s investment will surpass maximum per-user investment for this project. Aborting.\u0015��\u000e")
+        await expect(forbiddenAdditionalInvestment).to.be.rejectedWith("Invocation failed: cb_ATAjVXNlcidzIGludmVzdG1lbnQgd2lsbCBzdXJwYXNzIG1heGltdW0gcGVyIHVzZXIgaW52ZXN0bWVudCBmb3IgdGhpcyBwcm9qZWN0LiBBYm9ydGluZy4jWAF2VQ==. Decoded: \u00010#User\'s investment will surpass maximum per user investment for this project. Aborting.#X\u0001vU")
     })
 
     it("should fail if user's investment does not meet minimum required perUserInvestment", async () => {
@@ -275,7 +275,7 @@ describe("Project contract tests", () => {
         await investorEurInstance.approve(proj.address(), investmentAmount)
         
         let forbiddenInvest = proj.invest(investor.publicKey)
-        await expect(forbiddenInvest).to.be.rejectedWith("Invocation failed: cb_AUBVc2VyJ3MgaW52ZXN0bWVudCBkb2VzIG5vdCBtZWV0IHJlcXVpcmVkIG1pbmltdW0gcGVyLXVzZXIgaW52ZXN0bWVudCBmb3IgdGhpcyBwcm9qZWN0LiBBYm9ydGluZy7nv6Eb. Decoded: \u0001@User\'s investment does not meet required minimum per-user investment for this project. Aborting.翡\u001b")
+        await expect(forbiddenInvest).to.be.rejectedWith("Invocation failed: cb_AUQjVXNlcidzIGludmVzdG1lbnQgZG9lcyBub3QgbWVldCByZXF1aXJlZCBtaW5pbXVtIHBlciB1c2VyIGludmVzdG1lbnQgZm9yIHRoaXMgcHJvamVjdC4gQWJvcnRpbmcuI7ojZ1g=. Decoded: \u0001D#User\'s investment does not meet required minimum per user investment for this project. Aborting.#�#gX")
     })
 
     it("should fail if user's investment will make total funds raised be greater than the actual investment cap", async () => {
@@ -310,7 +310,7 @@ describe("Project contract tests", () => {
         let secondInvestorEurInstance = await eur.getInstance(secondInvestor)
         await secondInvestorEurInstance.approve(proj.address(), secondInvestmentAmount)
         let forbiddenInvest = proj.invest(secondInvestor.publicKey)
-        await expect(forbiddenInvest).to.be.rejectedWith("Invocation failed: cb_AT5Vc2VyJ3MgaW52ZXN0bWVudCB3aWxsIG1ha2UgdG90YWwgZnVuZHMgcmFpc2VkIGdyZWF0ZXIgdGhhbiBwcm9qZWN0J3MgaW52ZXN0bWVudCBjYXAuIEFib3J0aW5nLuVH8Q8=. Decoded: \u0001>User\'s investment will make total funds raised greater than project\'s investment cap. Aborting.�G�\u000f")
+        await expect(forbiddenInvest).to.be.rejectedWith("Invocation failed: cb_AUIjVXNlcidzIGludmVzdG1lbnQgd2lsbCBtYWtlIHRvdGFsIGZ1bmRzIHJhaXNlZCBncmVhdGVyIHRoYW4gcHJvamVjdCdzIGludmVzdG1lbnQgY2FwLiBBYm9ydGluZy4jYk37DQ==. Decoded: \u0001B#User\'s investment will make total funds raised greater than project\'s investment cap. Aborting.#bM�\r")
     })
 
     it("should fail if user's investment will leave tiny fraction (smaller than minimumPerUser amount) not funded resulting in dead-lock state", async () => {
@@ -345,7 +345,7 @@ describe("Project contract tests", () => {
         let secondInvestorEurInstance = await eur.getInstance(secondInvestor)
         await secondInvestorEurInstance.approve(proj.address(), secondInvestmentAmount)
         let forbiddenInvest = proj.invest(secondInvestor.publicKey)
-        await expect(forbiddenInvest).to.be.rejectedWith("Invocation failed: cb_AUhVc2VyJ3MgaW52ZXN0bWVudCB3aWxsIGxlYXZlIHRpbnkgZnJhY3Rpb24gb2YgcHJvamVjdCBub24tZnVuZGVkLiBFbmxhcmdlIHlvdXIgaW52ZXN0bWVudC4gQWJvcnRpbmcuMgUyqA==. Decoded: \u0001HUser\'s investment will leave tiny fraction of project non-funded. Enlarge your investment. Aborting.2\u00052�")
+        await expect(forbiddenInvest).to.be.rejectedWith("Invocation failed: cb_AUwjVXNlcidzIGludmVzdG1lbnQgd2lsbCBsZWF2ZSB0aW55IGZyYWN0aW9uIG9mIHByb2plY3Qgbm9uLWZ1bmRlZC4gRW5sYXJnZSB5b3VyIGludmVzdG1lbnQuIEFib3J0aW5nLiNbzr0X. Decoded: \u0001L#User\'s investment will leave tiny fraction of project non-funded. Enlarge your investment. Aborting.#[ν\u0017")
     })
 
     it("should fail for user to invest if project funding has ended", async () => {
@@ -370,7 +370,7 @@ describe("Project contract tests", () => {
         let investorEurInstance = await eur.getInstance(investor)
         await investorEurInstance.approve(proj.address(), investmentAmount)
         let forbiddenCall = proj.invest(investor.publicKey)
-        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_aVByb2plY3QgZnVuZGluZyBoYXMgZW5kZWQuGY+Xbg==. Decoded: iProject funding has ended.\u0019��n")
+        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_cSNQcm9qZWN0IGZ1bmRpbmcgaGFzIGVuZGVkLiOezZcS. Decoded: q#Project funding has ended.#�͗\u0012")
     })
 
     it("should be able for user to invest multiple times (while remaining in min-max per user limits", async () => {
@@ -516,7 +516,7 @@ describe("Project contract tests", () => {
 
         let investorProjInstance = await proj.getInstance(investor)
         let forbiddenCancelInvest = investorProjInstance.cancelInvestment()
-        await expect(forbiddenCancelInvest).to.be.rejectedWith("Invocation failed: cb_ZUNhbm5vdCBjYW5jZWwgaW52ZXN0bWVudCEqQq8k. Decoded: eCannot cancel investment!*B�$")
+        await expect(forbiddenCancelInvest).to.be.rejectedWith("Invocation failed: cb_cSNDYW4gbm90IGNhbmNlbCBpbnZlc3RtZW50ISOc8Ic5. Decoded: q#Can not cancel investment!#���9")
     })
 
     it("should fail to cancel investment if project fully funded", async () => {
@@ -543,7 +543,7 @@ describe("Project contract tests", () => {
         
         let investorProjInstance = await proj.getInstance(investor)
         let forbiddenCancelInvest = investorProjInstance.cancelInvestment()
-        await expect(forbiddenCancelInvest).to.be.rejectedWith("Invocation failed: cb_ZUNhbm5vdCBjYW5jZWwgaW52ZXN0bWVudCEqQq8k. Decoded: eCannot cancel investment!*B�$")
+        await expect(forbiddenCancelInvest).to.be.rejectedWith("Invocation failed: cb_cSNDYW4gbm90IGNhbmNlbCBpbnZlc3RtZW50ISOc8Ic5. Decoded: q#Can not cancel investment!#���9")
     })
 
     it("should be able for project admin to payout revenue shares to its investors after project funded and operational", async () => {
@@ -784,7 +784,7 @@ describe("Project contract tests", () => {
         expect(investor15fetchedBalance).to.be.equal(Math.floor(investment15 * revenue / projectInfo.investmentCap))
     })
 
-    it("should fail to start revenue shares payout if caller not organization admin", async () => {
+    it.only("should fail to start revenue shares payout if caller not organization admin", async () => {
         let projectInfo = generateProject()
 
         let orgOwner = util.generateRandomAeWallet()
@@ -808,7 +808,7 @@ describe("Project contract tests", () => {
 
         let investorProjInstance = await proj.getInstance(investor)
         let forbiddenCall = investorProjInstance.startRevenueSharesPayout(300)
-        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_7U9ubHkgb3JnYW5pemF0aW9uIG93bmVyIGNhbiBpbml0aWF0ZSByZXZlbnVlIHNoYXJlcyBwYXlvdXQuC+m00w==. Decoded: �Only organization owner can initiate revenue shares payout.\u000b��")
+        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_9SNPbmx5IG9yZ2FuaXphdGlvbiBvd25lciBjYW4gaW5pdGlhdGUgcmV2ZW51ZSBzaGFyZXMgcGF5b3V0LiPBf5MD. Decoded: �#Only organization owner can initiate revenue shares payout.#��\u0003")
     })
 
     it("should fail to start revenue shares payout if project not completely funded", async () => {
@@ -825,7 +825,7 @@ describe("Project contract tests", () => {
         await coop.registerWallet(proj.address())
 
         let forbiddenCall = proj.startRevenueSharesPayout(300)
-        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_ARpDYW5ub3Qgc3RhcnQgcmV2ZW51ZSBzaGFyZSBwYXlvdXQgb24gcHJvamVjdCB3aGljaCBpcyBzdGlsbCBpbiBmdW5kaW5nIHBoYXNlLhu5+ME=. Decoded: \u0001\u001aCannot start revenue share payout on project which is still in funding phase.\u001b���")
+        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_ASAjQ2FuIG5vdCBzdGFydCByZXZlbnVlIHNoYXJlIHBheW91dCBvbiBwcm9qZWN0IHdoaWNoIGlzIHN0aWxsIGluIGZ1bmRpbmcgcGhhc2UuI6N3GdA=. Decoded: \u0001 #Can not start revenue share payout on project which is still in funding phase.#�w\u0019�")
     })
 
     it("should fail to start revenue shares payout if revenue not minted to project wallet", async () => {
@@ -851,7 +851,7 @@ describe("Project contract tests", () => {
         await proj.invest(investor.publicKey)
 
         let forbiddenCall = proj.startRevenueSharesPayout(projectInfo.investmentCap + 1)
-        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_AVJDYW5ub3Qgc3RhcnQgcmV2ZW51ZSBzaGFyZSBwYXlvdXQuIFByb2plY3QgYmFsYW5jZSB0b28gbG93LiBNaW50IHJldmVudWUgdG8gcHJvamVjdCB3YWxsZXQgYW5kIHRyeSBhZ2FpbiExHHnr. Decoded: \u0001RCannot start revenue share payout. Project balance too low. Mint revenue to project wallet and try again!1\u001cy�")
+        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_AVgjQ2FuIG5vdCBzdGFydCByZXZlbnVlIHNoYXJlIHBheW91dC4gUHJvamVjdCBiYWxhbmNlIHRvbyBsb3cuIE1pbnQgcmV2ZW51ZSB0byBwcm9qZWN0IHdhbGxldCBhbmQgdHJ5IGFnYWluLiNoc6S3. Decoded: \u0001X#Can not start revenue share payout. Project balance too low. Mint revenue to project wallet and try again.#hs��")
     })
 
     it("should fail to start revenue shares payout if revenue is zero", async () => {
@@ -876,8 +876,8 @@ describe("Project contract tests", () => {
         await investorEurInstance.approve(proj.address(), projectInfo.investmentCap)
         await proj.invest(investor.publicKey)
 
-        let forbiddenCall = proj.startRevenueSharesPayout(projectInfo.investmentCap + 1)
-        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_AVJDYW5ub3Qgc3RhcnQgcmV2ZW51ZSBzaGFyZSBwYXlvdXQuIFByb2plY3QgYmFsYW5jZSB0b28gbG93LiBNaW50IHJldmVudWUgdG8gcHJvamVjdCB3YWxsZXQgYW5kIHRyeSBhZ2FpbiExHHnr. Decoded: \u0001RCannot start revenue share payout. Project balance too low. Mint revenue to project wallet and try again!1\u001cy�")
+        let forbiddenCall = proj.startRevenueSharesPayout(0)
+        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_cSNSZXZlbnVlIGlzIHplcm8uIEFib3J0aW5nLiM9480J. Decoded: q#Revenue is zero. Aborting.#=��\t")
     })
 
     it("should fail to start revenue shares payout if payout already started", async () => {
@@ -904,7 +904,7 @@ describe("Project contract tests", () => {
 
         await proj.startRevenueSharesPayout(300)
         let forbiddenCall = proj.startRevenueSharesPayout(300)
-        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_5UNhbm5vdCBzdGFydCByZXZlbnVlIHNoYXJlIHBheW91dC4gSXQgaXMgYWxyZWFkeSBzdGFydGVkIXeVt7w=. Decoded: �Cannot start revenue share payout. It is already started!w���")
+        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_8SNDYW4gbm90IHN0YXJ0IHJldmVudWUgc2hhcmUgcGF5b3V0LiBJdCBpcyBhbHJlYWR5IHN0YXJ0ZWQhI3HZrkg=. Decoded: �#Can not start revenue share payout. It is already started!#qٮH")
     })
 
     it("should be able for project owner to withdraw funds once the project is fully funded", async () => {
@@ -959,7 +959,7 @@ describe("Project contract tests", () => {
 
         let investorProjInstance = await proj.getInstance(investor)
         let forbiddenCall = investorProjInstance.withdraw(1000)
-        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_AQBPbmx5IG9yZ2FuaXphdGlvbiBvd25lciBjYW4gcmVxdWVzdCB3aXRoZHJhd2FsIG9mIHByb2plY3QgZnVuZHMur9lRMA==. Decoded: \u0001\u0000Only organization owner can request withdrawal of project funds.��Q0")
+        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_AQQjT25seSBvcmdhbml6YXRpb24gb3duZXIgY2FuIHJlcXVlc3Qgd2l0aGRyYXdhbCBvZiBwcm9qZWN0IGZ1bmRzLiNQ3zsM. Decoded: \u0001\u0004#Only organization owner can request withdrawal of project funds.#P�;\f")
     })
 
     it("should fail if trying to withdraw funds from project which is not fully funded", async () => {
@@ -985,7 +985,7 @@ describe("Project contract tests", () => {
         await proj.invest(investor.publicKey)
 
         let forbiddenCall = proj.withdraw(projectInfo.maxInvestmentPerUser)
-        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_6VByb2plY3QgaW52ZXN0bWVudCBjYXAgbm90IHJlYWNoZWQhIENhbm5vdCB3aXRoZHJhdyBmdW5kcy43zHIW. Decoded: �Project investment cap not reached! Cannot withdraw funds.7�r\u0016")
+        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_9SNQcm9qZWN0IGludmVzdG1lbnQgY2FwIG5vdCByZWFjaGVkISBDYW4gbm90IHdpdGhkcmF3IGZ1bmRzLiMyZ4vs. Decoded: �#Project investment cap not reached! Can not withdraw funds.#2g��")
     })
     
     it("should fail if trying to withdraw funds from project while revenue share payout is in process", async () => {
@@ -1012,7 +1012,7 @@ describe("Project contract tests", () => {
 
         await proj.startRevenueSharesPayout(1000)
         let forbiddenCall = proj.withdraw(1000)
-        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_/UNhbm5vdCB3aXRoZHJhdyBmdW5kcyB3aGlsZSByZXZlbnVlIHNoYXJlIHBheW91dCBpcyBpbiBwcm9jZXNzLjRnuB8=. Decoded: �Cannot withdraw funds while revenue share payout is in process.4g�\u001f")
+        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_AQQjQ2FuIG5vdCB3aXRoZHJhdyBmdW5kcyB3aGlsZSByZXZlbnVlIHNoYXJlIHBheW91dCBpcyBpbiBwcm9jZXNzLiMwCt+n. Decoded: \u0001\u0004#Can not withdraw funds while revenue share payout is in process.#0\nߧ")
     })
  
     ///////////// --------- HELPERS ----------- ////////////

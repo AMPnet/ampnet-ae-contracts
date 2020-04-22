@@ -50,10 +50,10 @@ contract Project =
 
         require(
             Call.origin == organization.owner(),
-            "Must be organization owner to be able to create Project.")
+            "#Must be organization owner to be able to create project for funding.#")
         require(
             organization.is_verified(),
-            "Organization must have an active wallet before it can create new Project.")
+            "#Organization must have an active wallet before it can create new project for funding#.")
         
         Chain.event(ProjectCreated)
 
@@ -74,21 +74,21 @@ contract Project =
     stateful entrypoint set_cancel_investment_flag(allow: bool) =
         require(
             only_organization_admin(),
-            "Only organization owner can allow or disallow unconditional investment cancel property!")
+            "#Only organization owner can allow or disallow unconditional investment cancellation!#")
         put(state{ canCancelInvestmentUnconditionally = allow })
 
     stateful entrypoint add_investments(investmentsList: list((address * int))) =
         require(
             Call.origin == state.organization.coop().owner(),
-            "Only Cooperative can manually add new investments!")
+            "#Only platform manager can manually add new investments!#")
 
         require(
             !is_completely_funded(), 
-            "Can not add new investments. Project already completely funded.")
+            "#Can not add new investments. Project already completely funded.#")
 
         require(
             !has_funding_expired(),
-            "Can not add new investments. Project expired before it was completely funded.")
+            "#Can not add new investments. Project expired before it was completely funded.#")
 
         recursive_investment_add(investmentsList)
 
@@ -107,7 +107,7 @@ contract Project =
         let investment = state.investments[investor = 0]
         require(
             can_cancel_investment(investor),
-            "Cannot cancel investment!")
+            "#Can not cancel investment!#")
         state.organization.coop().token().transfer(investor, investment)
         put(state{
             investments[investor] = 0,
@@ -117,15 +117,15 @@ contract Project =
     stateful entrypoint withdraw(amount: int) =
         require(
             is_completely_funded(),
-            "Project investment cap not reached! Cannot withdraw funds.")
+            "#Project investment cap not reached! Can not withdraw funds.#")
         
         require(
             only_organization_admin(),
-            "Only organization owner can request withdrawal of project funds.")
+            "#Only organization owner can request withdrawal of project funds.#")
 
         require(
             !state.payoutInProcess,
-            "Cannot withdraw funds while revenue share payout is in process.")
+            "#Can not withdraw funds while revenue share payout is in process.#")
 
         let tokenIssuer = state.organization.coop().token().owner()
         state.organization.coop().token().approve(tokenIssuer, amount)
@@ -145,7 +145,7 @@ contract Project =
         
         require(
             state.payoutInProcess,
-            "Must call startRevenueSharesPayout(revenue) before actual payout process is executed.")
+            "#Revenue share payout has to be started before actual payout process is executed.#")
 
         let numOfInvestors = Map.size(state.investors)
         
@@ -227,56 +227,56 @@ contract Project =
 
         require(
             state.totalFundsRaised < state.investmentCap, 
-            "Can not invest, project already completely funded.")
+            "#Can not invest, project already completely funded.#")
 
         require(
             amount > 0,
-            "Can not invest zero tokens!")
+            "#Can not invest zero tokens!#")
 
         require(
             state.organization.coop().token().balance_of(investor) >= amount,
-            "Can not invest. Insufficient funds.")
+            "#Can not invest. Insufficient funds.#")
         
         require(
             usersNewTotalInvestment =< state.maxInvestmentPerUser,
-            "User's investment will surpass maximum per-user investment for this project. Aborting.")
+            "#User's investment will surpass maximum per user investment for this project. Aborting.#")
 
         require(
             usersNewTotalInvestment >= state.minInvestmentPerUser,
-            "User's investment does not meet required minimum per-user investment for this project. Aborting.")
+            "#User's investment does not meet required minimum per user investment for this project. Aborting.#")
         
         require(
             projectNewTotalInvestment =< state.investmentCap,
-            "User's investment will make total funds raised greater than project's investment cap. Aborting.")
+            "#User's investment will make total funds raised greater than project's investment cap. Aborting.#")
 
         require(
             projectRemainingTotalInvestment == 0 || projectRemainingTotalInvestment >= state.minInvestmentPerUser,
-            "User's investment will leave tiny fraction of project non-funded. Enlarge your investment. Aborting.")
+            "#User's investment will leave tiny fraction of project non-funded. Enlarge your investment. Aborting.#")
 
         require(
             !has_funding_expired(),
-            "Project funding has ended.")
+            "#Project funding has ended.#")
 
     entrypoint check_share_payout_preconditions(caller: address, revenue: int) =
         require(
             caller == state.organization.owner(),
-            "Only organization owner can initiate revenue shares payout.")
+            "#Only organization owner can initiate revenue shares payout.#")
 
         require(
             is_completely_funded(),
-            "Cannot start revenue share payout on project which is still in funding phase.")
+            "#Can not start revenue share payout on project which is still in funding phase.#")
 
         require(
             revenue > 0,
-            "Revenue is zero. Aborting.")
+            "#Revenue is zero. Aborting.#")
 
         require(
             state.organization.coop().token().balance_of(Contract.address) >= revenue,
-            "Cannot start revenue share payout. Project balance too low. Mint revenue to project wallet and try again!")
+            "#Can not start revenue share payout. Project balance too low. Mint revenue to project wallet and try again.#")
         
         require(
             !state.payoutInProcess,
-            "Cannot start revenue share payout. It is already started!")
+            "#Can not start revenue share payout. It is already started!#")
 
     stateful function persist_investment(investor: address, amount: int) = 
         if (!Map.member(investor, state.investments))

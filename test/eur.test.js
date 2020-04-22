@@ -55,7 +55,7 @@ describe("EUR contract tests", () => {
             contractAddress: eur.address()
         })
         let forbiddenMint = eurInstance.methods.mint(randomWallet.publicKey, 1000000)
-        await expect(forbiddenMint).to.be.rejectedWith("Invocation failed: cb_gU9ubHkgb3duZXIgY2FuIG1ha2UgdGhpcyBhY3Rpb24hEKNgCg==. Decoded: �Only owner can make this action!\u0010�`\n")
+        await expect(forbiddenMint).to.be.rejectedWith("Invocation failed: cb_pSNPbmx5IFRva2VuIElzc3VlciBjYW4gbWFrZSB0aGlzIGFjdGlvbiEjDt1R9A==. Decoded: �#Only Token Issuer can make this action!#\u000e�Q�")
     })
     
     it("can burn tokens if user allowed token issuer to do so (withdraw option)", async () => {
@@ -115,7 +115,7 @@ describe("EUR contract tests", () => {
         let registeredCoopWalletEurInstance = await eur.getInstance(registeredCoopWallet)
         let forbiddenTransfer = registeredCoopWalletEurInstance.transfer(nonRegisteredCoopWallet.publicKey, amount)
 
-        await expect(forbiddenTransfer).to.be.rejectedWith("Invocation failed: cb_2U9ubHkgcmVnaXN0ZXJlZCBDb29wZXJhdGl2ZSB1c2VyIGNhbiBtYWtlIHRoaXMgYWN0aW9uITerAto=. Decoded: �Only registered Cooperative user can make this action!7�\u0002�")
+        await expect(forbiddenTransfer).to.be.rejectedWith("Invocation failed: cb_ySNSZWNlaXZlciB3YWxsZXQgbm90IGFjdGl2YXRlZC4gVHJhbnNmZXIgYWJvcnRlZC4j0O1NvA==. Decoded: �#Receiver wallet not activated. Transfer aborted.#��M�")
     })
 
     it('should fail when anyone tries to burn his own tokens - only token issure can burn', async () => {
@@ -129,7 +129,7 @@ describe("EUR contract tests", () => {
         let randomWalletEurInstance = await eur.getInstance(randomWallet)
         let forbiddenBurn = randomWalletEurInstance.burn(randomWallet.publicKey, amount)
 
-        await expect(forbiddenBurn).to.be.rejectedWith("Invocation failed: cb_gU9ubHkgb3duZXIgY2FuIG1ha2UgdGhpcyBhY3Rpb24hEKNgCg==. Decoded: �Only owner can make this action!\u0010�`\n")
+        await expect(forbiddenBurn).to.be.rejectedWith("Invocation failed: cb_pSNPbmx5IFRva2VuIElzc3VlciBjYW4gbWFrZSB0aGlzIGFjdGlvbiEjDt1R9A==. Decoded: �#Only Token Issuer can make this action!#\u000e�Q�")
     })
 
 })

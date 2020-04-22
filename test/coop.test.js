@@ -53,7 +53,7 @@ describe("Cooperative contract tests", () => {
         let fakeAdminCoopInstance = await coop.getInstance(fakeAdmin)
         
         let forbiddenCall = fakeAdminCoopInstance.registerWallet(randomWallet.publicKey)
-        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_gU9ubHkgb3duZXIgY2FuIG1ha2UgdGhpcyBhY3Rpb24hEKNgCg==. Decoded: �Only owner can make this action!\u0010�`\n")
+        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_tSNPbmx5IFBsYXRmb3JtIE1hbmFnZXIgY2FuIG1ha2UgdGhpcyBhY3Rpb24hI9pvoVA=. Decoded: �#Only Platform Manager can make this action!#�o�P")
     })
 
 })
