@@ -10,12 +10,21 @@ contract Coop =
     record state = {
         owner                      : address,
         activeWallets              : map(address, bool),
-        token                      : option(TokenInterface) }
+        token                      : option(TokenInterface),
+        claimOwnershipCalled       : bool }
     
     stateful entrypoint init() : state =
         { owner = Call.origin,
           activeWallets = {},
-          token = None }
+          token = None,
+          claimOwnershipCalled = false }
+    
+    stateful entrypoint claim_ownership(newOwner: address) =
+        require(!state.claimOwnershipCalled, "#Error: trying to claim ownership more than once. Aborting.#")
+        put(state{
+            owner = newOwner,
+            claimOwnershipCalled = true })
+        Chain.event(CoopOwnershipChanged(newOwner))
     
     stateful entrypoint transfer_ownership(newOwner: address) =
         only_owner()

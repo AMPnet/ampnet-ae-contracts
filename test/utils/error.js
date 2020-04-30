@@ -7,4 +7,14 @@ let decode = async (e) => {
     throw new Error("Test failed.")
 }
 
-Object.assign(exports, { decode })
+function filter(str) {
+    let startPosition = str.indexOf("#")
+    let endPosition = str.lastIndexOf("#")
+    if (startPosition == -1 || endPosition == -1 || startPosition == endPosition) {
+        return str.replace(/[^a-zA-Z0-9\(\)!\?\., ]/g, '').trim()
+    } else {
+        return str.substring(startPosition + 1, endPosition)
+    }
+}
+
+Object.assign(exports, { decode, filter })

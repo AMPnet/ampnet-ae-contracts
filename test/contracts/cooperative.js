@@ -9,6 +9,14 @@ class Cooperative {
         this.contractInstance = contractInstance
     }
 
+    async claimOwnership(newOwner) {
+        return this.contractInstance.methods.claim_ownership(util.enforceAkPrefix(newOwner))
+    }
+
+    async fetchOwner() {
+        return this.contractInstance.methods.owner()
+    }
+
     async registerWallet(address) {
         return this.contractInstance.methods.add_wallet(util.enforceAkPrefix(address))
     }

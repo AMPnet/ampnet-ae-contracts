@@ -9,6 +9,10 @@ class Eur {
         this.contractInstance = contractInstance
     }
 
+    async claimOwnership(newOwner) {
+        return this.contractInstance.methods.claim_ownership(util.enforceAkPrefix(newOwner))
+    }
+
     async mint(address, amount) {
         let addressToMint = util.enforceAkPrefix(address)
         let tokenAmount = util.eurToToken(amount)
@@ -19,6 +23,10 @@ class Eur {
         let addressToBurn = util.enforceAkPrefix(address)
         let tokenAmount = util.eurToToken(amount)
         return this.contractInstance.methods.burn(addressToBurn, tokenAmount)
+    }
+
+    async fetchOwner() {
+        return this.contractInstance.methods.owner()
     }
 
     async getBalance(address) {

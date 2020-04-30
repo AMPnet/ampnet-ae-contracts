@@ -14,14 +14,16 @@ contract EUR =
     totalSupply      : int,
     balances         : map(address, int),
     allowed          : map((address * address), int),
-    coop             : CoopInterface }
+    coop             : CoopInterface,
+    claimOwnershipCalled : bool }
 
   stateful entrypoint init(coop : CoopInterface) : state =
     { owner       = Call.origin,
       totalSupply = 0,
       balances    = {},
       allowed     = {},
-      coop        = coop }
+      coop        = coop,
+      claimOwnershipCalled = false }
 
   entrypoint owner() : address = state.owner
 
@@ -30,6 +32,13 @@ contract EUR =
   entrypoint balance_of(who: address) : int = lookup_by_address(who, state.balances, 0)
 
   entrypoint allowance(owner: address, spender: address) : int = Map.lookup_default((owner, spender), state.allowed, 0)
+
+  stateful entrypoint claim_ownership(newOwner: address) =
+    require(!state.claimOwnershipCalled, "#Error: trying to claim ownership more than once. Aborting.#")
+    put(state{
+        owner = newOwner,
+        claimOwnershipCalled = true })
+    Chain.event(EurOwnershipChanged(newOwner))
 
   stateful entrypoint transfer_ownership(newOwner: address) =
     only_owner("")
