@@ -1,7 +1,7 @@
 version: 2
 executorType: machine
 jobs:
-  test:
+  build:
     machine: true
     working_directory: ~/repo
 
