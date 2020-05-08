@@ -1,7 +1,7 @@
-version: 2
+version: 2.1
 executorType: machine
 jobs:
-  build:
+  test:
     machine: true
     working_directory: ~/repo
 
@@ -25,3 +25,12 @@ jobs:
       
       - run: npm install
       - run: npm test
+
+workflows:
+  version: 2.1
+  test:
+    jobs:
+      - test:
+        filters:
+          branches:
+            only: master
