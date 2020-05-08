@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  ae-node:
+    image: aeternity/aeternity:v5.0.0-rc.4
+    environment:
+      AETERNITY_CONFIG: /home/aeternity/aeternity.yaml
+    volumes:
+      - ${PWD}/config/singlenode_mean15.yaml:/home/aeternity/aeternity.yaml
+      - ${PWD}/config/accounts_test.json:/home/aeternity/node/data/aecore/.genesis/accounts_test.json
+      - ${PWD}/keys/node1:/home/aeternity/node/keys
+    ports:
+     - "3013:3013"
+     - "3113:3113"
+     - "3014:3014"
+
+  sophia-compiler:
+    image: aeternity/aesophia_http:v4.0.0
+    ports:
+       - "3080:3080"

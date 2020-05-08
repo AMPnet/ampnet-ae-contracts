@@ -1,0 +1,27 @@
+version: 2
+executorType: machine
+jobs:
+  test:
+    machine: true
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+      - run: docker network prune -f
+      - run: cd node && docker-compose up -d && cd .. 
+
+      - run: |
+          echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
+          echo ' [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> $BASH_ENV
+      - run: |
+          nvm install v12
+          nvm alias default v12
+          node -v
+      
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+      
+      - run: npm install
+      - run: npm test
