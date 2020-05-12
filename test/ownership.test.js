@@ -32,27 +32,16 @@ describe("Cooperative contract tests", () => {
 		eur = new Eur(deployed.eur)
     })
 
-    it("should be able to claim ownership on Coop contract only once", async () => {
+    it("should fail to claim ownership on Coop contract, feature is disabled", async () => {
         let newOwner = util.generateRandomAeWallet()
-        await coop.claimOwnership(newOwner.publicKey)
-        let fetchedOwner = await (await coop.fetchOwner()).decode()
-        expect(fetchedOwner).to.equal(newOwner.publicKey)
-
-        let forbiddenOwner = util.generateRandomAeWallet()
-        let forbiddenCall = coop.claimOwnership(forbiddenOwner.publicKey)
-        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_8SNFcnJvcjogdHJ5aW5nIHRvIGNsYWltIG93bmVyc2hpcCBtb3JlIHRoYW4gb25jZS4gQWJvcnRpbmcuI0ob3fA=. Decoded: �#Error: trying to claim ownership more than once. Aborting.#J\u001b��")
+        let forbiddenCall = coop.claimOwnership(newOwner.publicKey)
+        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_3SNFcnJvcjogY2xhaW0gb3duZXJzaGlwIGZlYXR1cmUgaXMgZGlzYWJsZWQuIEFib3J0aW5nLiMgZMWt. Decoded: �#Error: claim ownership feature is disabled. Aborting.# dŭ")
     })
 
-    it("should be able to claim ownership on EUR contract only once", async () => {
+    it("should fail to claim ownership on EUR contract, feature is disabled", async () => {
         let newOwner = util.generateRandomAeWallet()
-        await eur.claimOwnership(newOwner.publicKey)
-        let fetchedOwner = await (await eur.fetchOwner()).decode()
-        expect(fetchedOwner).to.equal(newOwner.publicKey)
-
-        let forbiddenOwner = util.generateRandomAeWallet()
-        let forbiddenCall = eur.claimOwnership(forbiddenOwner.publicKey)
-        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_8SNFcnJvcjogdHJ5aW5nIHRvIGNsYWltIG93bmVyc2hpcCBtb3JlIHRoYW4gb25jZS4gQWJvcnRpbmcuI0ob3fA=. Decoded: �#Error: trying to claim ownership more than once. Aborting.#J\u001b��")
-    
+        let forbiddenCall = eur.claimOwnership(newOwner.publicKey)
+        await expect(forbiddenCall).to.be.rejectedWith("Invocation failed: cb_3SNFcnJvcjogY2xhaW0gb3duZXJzaGlwIGZlYXR1cmUgaXMgZGlzYWJsZWQuIEFib3J0aW5nLiMgZMWt. Decoded: �#Error: claim ownership feature is disabled. Aborting.# dŭ")
     })
 
 })

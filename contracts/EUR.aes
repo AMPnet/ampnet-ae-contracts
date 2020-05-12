@@ -15,7 +15,8 @@ contract EUR =
     balances         : map(address, int),
     allowed          : map((address * address), int),
     coop             : CoopInterface,
-    claimOwnershipCalled : bool }
+    claimOwnershipCalled : bool,
+    claimOwnershipEnabled : bool }
 
   stateful entrypoint init(coop : CoopInterface) : state =
     { owner       = Call.origin,
@@ -23,7 +24,8 @@ contract EUR =
       balances    = {},
       allowed     = {},
       coop        = coop,
-      claimOwnershipCalled = false }
+      claimOwnershipCalled = false,
+      claimOwnershipEnabled = false }
 
   entrypoint owner() : address = state.owner
 
@@ -34,6 +36,7 @@ contract EUR =
   entrypoint allowance(owner: address, spender: address) : int = Map.lookup_default((owner, spender), state.allowed, 0)
 
   stateful entrypoint claim_ownership(newOwner: address) =
+    require(state.claimOwnershipEnabled, "#Error: claim ownership feature is disabled. Aborting.#")
     require(!state.claimOwnershipCalled, "#Error: trying to claim ownership more than once. Aborting.#")
     put(state{
         owner = newOwner,
