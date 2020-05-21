@@ -1,0 +1,151 @@
+contract TokenInterface =
+    entrypoint allowance : (address, address) => int
+    entrypoint balance_of : (address) => int
+    entrypoint transfer : (address, int) => bool
+    entrypoint transfer_from : (address, address, int) => bool
+
+contract ProjectInterface =
+    entrypoint is_completely_funded: () => bool
+    entrypoint get_investment: (address) => int
+    entrypoint get_token: () => TokenInterface
+    entrypoint transfer_shares: (address, int) => unit
+
+contract SellOffer = 
+
+    datatype event =
+        SharesSold(address, address, int)
+      | CounterOfferPlaced(address, int)
+      | CounterOfferRemoved(address)
+      | SellOfferCanceled
+      | RevenueSharesReturned(address, int)
+
+    record state = {
+        project         : ProjectInterface,
+        token           : TokenInterface,
+        shares          : int,
+        price           : int,
+        counterOffers   : map(address, int),
+        activated       : bool,
+        settled         : bool }
+
+    stateful entrypoint init(
+        project: ProjectInterface,
+        shares: int,
+        price: int) : state =
+
+        require(
+            project.is_completely_funded(),
+            "#Can not place sell offer. Associated project not funded completely.#")
+        require(
+            project.get_investment(Call.origin) >= shares,
+            "#Can not place sell offer. Not enough shares to sell.#")
+        { project = project,
+          token = project.get_token(),
+          shares = shares,
+          price = price,
+          counterOffers = {},
+          activated = false,
+          settled = false }
+
+    entrypoint get_offer() : (int * int) = (state.shares, state.price)
+
+    stateful entrypoint activate_offer() =
+        require(
+            !state.settled,
+            "#Error: offer already settled.#")
+        require(
+            !state.activated,
+            "#Error: offer already activated.#")
+        require(
+            Call.caller == state.project.address,
+            "#Sell offer can only be activated by associated project, after shares have been placed for public offering by their owner.#")
+        require(
+            Call.origin == Contract.creator,
+            "#Sell offer can only be activated by associated project, after shares have been placed for public offering by their owner.#")
+        require(
+            state.project.get_investment(Contract.address) == state.shares,
+            "#Can not activate offer. Invalid number of shares placed for selling.#")
+        put(state{ activated = true })
+
+    stateful entrypoint try_to_settle(buyer: address) =
+        let counterOfferPrice = state.token.allowance(buyer, Contract.address)
+        let buyerBalance = state.token.balance_of(buyer)
+        let seller = Contract.creator
+        require(
+            state.activated,
+            "#Error: sell offer not activated.#")
+        require(
+            !state.settled,
+            "#Error: sell offer already settled.#")
+        require(
+            counterOfferPrice >= buyerBalance,
+            "#Error: insufficient funds.#")
+        if (counterOfferPrice >= state.price)
+            state.token.transfer_from(buyer, seller, state.price)
+            state.project.transfer_shares(buyer, state.shares)
+            put(state{ settled = true })
+            _send_tokens_to_creator()
+            Chain.event(SharesSold(buyer, seller, state.price))
+        else
+            if (counterOfferPrice == 0)
+                put(state{ counterOffers = Map.delete(buyer, state.counterOffers) })
+                Chain.event(CounterOfferRemoved(buyer))
+            else
+                put(state{ counterOffers[buyer] = counterOfferPrice })
+                Chain.event(CounterOfferPlaced(buyer, counterOfferPrice))
+
+    stateful entrypoint accept_counter_offer(buyer: address) =
+        require(
+            Call.origin == Contract.creator,
+            "#Error: only seller can accept counter offer.#")
+        require(
+            state.activated,
+            "#Error: sell offer not activated.#")
+        require(
+            !state.settled,
+            "#Error: sell offer already settled.#")
+        require(
+            Map.member(buyer, state.counterOffers),
+            "#Error: tried to accept non-existing counter offer.#")
+        let price = state.counterOffers[buyer]
+        let seller = Contract.creator
+        state.token.transfer_from(buyer, seller, price)
+        state.project.transfer_shares(buyer, state.shares)
+        put(state{ settled = true })
+        _send_tokens_to_creator()
+        Chain.event(SharesSold(buyer, seller, price))
+
+    stateful entrypoint cancel_offer() =
+        require(
+            Call.origin == Contract.creator,
+            "#Error: only seller can cancel offer.#")
+        require(
+            state.activated,
+            "#Error: can not cancel unactivated offer.#")
+        require(
+            !state.settled,
+            "#Error: can not cancel offer. Offer already settled.#")
+        put(state{ settled = true })
+        _send_tokens_to_creator()
+        Chain.event(SellOfferCanceled)
+
+    stateful function _send_tokens_to_creator() =
+        let amount = state.token.balance_of(Contract.address)
+        let creator = Contract.creator
+        state.token.transfer(creator, amount)
+        Chain.event(RevenueSharesReturned(creator, amount))
+
+        
+        
+
+        
+        
+    
+
+            
+
+
+            
+        
+
+    

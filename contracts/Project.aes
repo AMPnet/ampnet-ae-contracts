@@ -9,11 +9,16 @@ contract TokenInterface =
 contract CoopInterface =
     entrypoint token : () => TokenInterface
     entrypoint owner : () => address
+    entrypoint is_wallet_active : (address) => bool
 
 contract OrgInterface =
     entrypoint is_verified : () => bool
     entrypoint coop : () => CoopInterface
     entrypoint owner : () => address
+
+contract SellOfferInterface =
+    entrypoint get_offer: () => (int * int)
+    entrypoint activate_offer : () => unit
 
 contract Project =
 
@@ -98,7 +103,7 @@ contract Project =
         
         check_investment_preconditions(investor, amount)
         token.transfer_from(investor, Contract.address, amount)
-        persist_investment(investor, amount)
+        _persist_investment(investor, amount)
 
         Chain.event(NewInvestment(investor, amount))
 
@@ -131,6 +136,16 @@ contract Project =
         state.organization.coop().token().approve(tokenIssuer, amount)
         Chain.event(ApproveWithdrawProjectFunds(tokenIssuer, amount))
     
+    stateful entrypoint transfer_shares(to: address, amount: int) =
+        _transfer_shares(Call.caller, to, amount)
+
+    stateful entrypoint activate_sell_offer(offer: SellOfferInterface) =
+        let info = offer.get_offer()
+        switch(info)
+            (shares, price) =>
+                _transfer_shares(Call.caller, offer.address, shares)
+                offer.activate_offer()
+
     stateful entrypoint start_revenue_shares_payout(revenue: int) =
         check_share_payout_preconditions(Call.origin, revenue)
 
@@ -174,7 +189,9 @@ contract Project =
 
     entrypoint get_project_info() : (int * int * int * int * int * bool) = (state.minInvestmentPerUser, state.maxInvestmentPerUser, state.investmentCap, state.endsAt, state.totalFundsRaised, state.payoutInProcess)
 
-    entrypoint get_investment() : int = state.investments[Call.origin = 0]
+    entrypoint get_token() : TokenInterface = state.organization.coop().token()
+
+    entrypoint get_investment(investor: address) : int = state.investments[investor = 0]
 
     entrypoint get_investments() : map(address, int) = state.investments
 
@@ -214,7 +231,7 @@ contract Project =
                 switch (investment)
                     (addr, amount) =>
                         check_investment_preconditions(addr, amount)
-                        persist_investment(addr, amount)
+                        _persist_investment(addr, amount)
                 1 + recursive_investment_add(investments')
             [] => 0
             
@@ -278,7 +295,7 @@ contract Project =
             !state.payoutInProcess,
             "#Can not start revenue share payout. It is already started!#")
 
-    stateful function persist_investment(investor: address, amount: int) = 
+    stateful function _persist_investment(investor: address, amount: int) = 
         if (!Map.member(investor, state.investments))
             let newInvestorIndex = Map.size(state.investors)
             put(state{ investors[newInvestorIndex] = investor })
@@ -286,3 +303,24 @@ contract Project =
         put(state{
             investments[investor = 0] @ investment = investment + amount,
             totalFundsRaised @ raised = raised + amount })
+    
+    stateful function _transfer_shares(from: address, to: address, amount: int) =
+        let availableShares = state.investments[from = 0]
+        require(
+            is_completely_funded(),
+            "#Error: can not transfer shares. Project is still in funding phase.#")
+        require(
+            !state.payoutInProcess,
+            "#Error: can not transfer shares. Project is in revenue share payout state.#")
+        require(
+            availableShares >= amount,
+            "#Error: can not transfer shares. Insufficient amount of shares to transfer.#")
+        require(
+            state.organization.coop().is_wallet_active(to),
+            "#Error: can not transfer shares. Receiver not active Cooperative member.#")
+        if (!Map.member(to, state.investments))
+            let newInvestorIndex = Map.size(state.investors)
+            put(state{ investors[newInvestorIndex] = to })
+        put(state{
+            investments[to = 0] @ investment = investment + amount, 
+            investments[from] @ investment = investment - amount })
