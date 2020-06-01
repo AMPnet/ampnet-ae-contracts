@@ -85,27 +85,32 @@ async function initialize(wallets) {
         bank: {
             client: bankClient,
             address: bankAddress,
-            privateKey: bankPrivateKey
+            privateKey: bankPrivateKey,
+            keypair: bankKeypair
         },
         coop: {
             client: coopClient,
             address: coopAddress,
-            privateKey: coopPrivateKey
+            privateKey: coopPrivateKey,
+            keypair: coopKeypair
         },
         eur: {
             client: eurClient,
             address: eurAddress,
-            privateKey: eurPrivateKey
+            privateKey: eurPrivateKey,
+            keypair: eurKeypair
         },
         bob: {
             client: bobClient,
             address: bobAddress,
-            privateKey: bobPrivateKey
+            privateKey: bobPrivateKey,
+            keypair: bobKeypair
         },
         alice: {
             client: aliceClient,
             address: aliceAddress,
-            privateKey: alicePrivateKey
+            privateKey: alicePrivateKey,
+            keypair: aliceKeypair
         }
     }
 }

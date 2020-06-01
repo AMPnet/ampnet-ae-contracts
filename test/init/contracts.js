@@ -5,5 +5,6 @@ let coopSource = fs.readFileSync(path.join(__dirname, '../..', 'contracts', 'Coo
 let eurSource = fs.readFileSync(path.join(__dirname, '../..', 'contracts', 'EUR.aes')).toString()
 let orgSource = fs.readFileSync(path.join(__dirname, '../..', 'contracts', 'Organization.aes')).toString()
 let projSource = fs.readFileSync(path.join(__dirname, '../..', 'contracts', 'Project.aes')).toString()
+let sellOfferSource = fs.readFileSync(path.join(__dirname, '../..', 'contracts', 'SellOffer.aes')).toString()
 
-Object.assign(exports, { coopSource, eurSource, orgSource, projSource })
+Object.assign(exports, { coopSource, eurSource, orgSource, projSource, sellOfferSource })

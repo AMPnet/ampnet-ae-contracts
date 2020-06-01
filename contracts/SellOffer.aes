@@ -8,7 +8,7 @@ contract ProjectInterface =
     entrypoint is_completely_funded: () => bool
     entrypoint get_investment: (address) => int
     entrypoint get_token: () => TokenInterface
-    entrypoint transfer_shares: (address, int) => unit
+    entrypoint transfer_shares: (address, address, int) => unit
 
 contract SellOffer = 
 
@@ -62,12 +62,9 @@ contract SellOffer =
         require(
             Call.origin == Contract.creator,
             "#Sell offer can only be activated by associated project, after shares have been placed for public offering by their owner.#")
-        require(
-            state.project.get_investment(Contract.address) == state.shares,
-            "#Can not activate offer. Invalid number of shares placed for selling.#")
         put(state{ activated = true })
 
-    stateful entrypoint try_to_settle(buyer: address) =
+    stateful entrypoint try_to_settle(buyer: address)  =
         let counterOfferPrice = state.token.allowance(buyer, Contract.address)
         let buyerBalance = state.token.balance_of(buyer)
         let seller = Contract.creator
@@ -78,13 +75,12 @@ contract SellOffer =
             !state.settled,
             "#Error: sell offer already settled.#")
         require(
-            counterOfferPrice >= buyerBalance,
+            counterOfferPrice =< buyerBalance,
             "#Error: insufficient funds.#")
         if (counterOfferPrice >= state.price)
             state.token.transfer_from(buyer, seller, state.price)
-            state.project.transfer_shares(buyer, state.shares)
+            state.project.transfer_shares(seller, buyer, state.shares)
             put(state{ settled = true })
-            _send_tokens_to_creator()
             Chain.event(SharesSold(buyer, seller, state.price))
         else
             if (counterOfferPrice == 0)
@@ -110,9 +106,8 @@ contract SellOffer =
         let price = state.counterOffers[buyer]
         let seller = Contract.creator
         state.token.transfer_from(buyer, seller, price)
-        state.project.transfer_shares(buyer, state.shares)
+        state.project.transfer_shares(seller, buyer, state.shares)
         put(state{ settled = true })
-        _send_tokens_to_creator()
         Chain.event(SharesSold(buyer, seller, price))
 
     stateful entrypoint cancel_offer() =
@@ -126,14 +121,7 @@ contract SellOffer =
             !state.settled,
             "#Error: can not cancel offer. Offer already settled.#")
         put(state{ settled = true })
-        _send_tokens_to_creator()
         Chain.event(SellOfferCanceled)
-
-    stateful function _send_tokens_to_creator() =
-        let amount = state.token.balance_of(Contract.address)
-        let creator = Contract.creator
-        state.token.transfer(creator, amount)
-        Chain.event(RevenueSharesReturned(creator, amount))
 
         
         

@@ -68,8 +68,8 @@ class Project {
         return this.contractInstance.methods.cancel_investment()
     }
 
-    async getInvestment() {
-        let callResult = await this.contractInstance.methods.get_investment()
+    async getInvestment(investor) {
+        let callResult = await this.contractInstance.methods.get_investment(investor)
         let decoded = await callResult.decode()
         return util.tokenToEur(decoded)
     }
@@ -121,6 +121,10 @@ class Project {
             let call = await this.contractInstance.methods.payout_revenue_shares()
             shouldCallAgain = call.decodedResult
         } while (shouldCallAgain)
+    }
+
+    async activateSellOffer(offer) {
+        return this.contractInstance.methods.activate_sell_offer(offer)
     }
 
     address() {
