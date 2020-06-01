@@ -82,7 +82,7 @@ describe("Project contract tests", () => {
         assert.strictEqual(newSharesOwnerOwnedShares, sharesToTransfer)
     })
 
-    it.only("should be able to exchange tokens for stake in project (counter-offer scenario)", async () => {
+    it("should be able to exchange tokens for stake in project (counter-offer scenario)", async () => {
         let projectInfo = generateProject()
 
         await coop.registerWallet(accounts.bob.address)
