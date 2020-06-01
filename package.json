@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@aeternity/aepp-sdk": "^7.2.1",
+    "@aeternity/aepp-sdk": "^7.4.0",
     "aeproject-lib": "^1.0.0",
     "cryptr": "^4.0.2",
     "dotenv": "^8.0.0",
