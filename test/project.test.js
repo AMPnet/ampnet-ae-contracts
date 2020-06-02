@@ -411,7 +411,7 @@ describe("Project contract tests", () => {
         expect(investments[investor.publicKey]).to.equal(firstInvestmentAmount + secondInvestmentAmount)
     })
 
-    it.only("should be able for user to cancel investment if: \n\t - organization admin has activated that option and project not fully funded\n\t - organization admin has activated that option and project IS fully funded\n\t - project not fully funded (regardless of admin flag value)", async () => {
+    it("should be able for user to cancel investment if: \n\t - organization admin has activated that option and project not fully funded\n\t - organization admin has activated that option and project IS fully funded\n\t - project not fully funded (regardless of admin flag value)", async () => {
         let projectInfo = generateProject()
 
         let orgOwner = util.generateRandomAeWallet()
