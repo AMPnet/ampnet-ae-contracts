@@ -131,8 +131,7 @@ describe("Project contract tests", () => {
         let isCompletelyFunded = await proj.isCompletelyFunded()
         expect(isCompletelyFunded).to.be.false
 
-        let investorProjInstance = await proj.getInstance(investor)
-        let fetchedInvestment = await investorProjInstance.getInvestment()
+        let fetchedInvestment = await proj.getInvestment(investor.publicKey)
         expect(fetchedInvestment).to.be.equal(investmentAmount)
     })
 
@@ -403,8 +402,7 @@ describe("Project contract tests", () => {
         let totalFundsRaised = await proj.totalFundsRaised()
         expect(totalFundsRaised).to.be.equal(firstInvestmentAmount + secondInvestmentAmount)
 
-        let investorProjInstance = await proj.getInstance(investor)
-        let fetchedUserInvestment = await investorProjInstance.getInvestment()
+        let fetchedUserInvestment = await proj.getInvestment(investor.publicKey)
         expect(fetchedUserInvestment).to.be.equal(firstInvestmentAmount + secondInvestmentAmount)
 
         let investments = await proj.getInvestments()
@@ -413,7 +411,7 @@ describe("Project contract tests", () => {
         expect(investments[investor.publicKey]).to.equal(firstInvestmentAmount + secondInvestmentAmount)
     })
 
-    it("should be able for user to cancel investment if: \n\t - organization admin has activated that option and project not fully funded\n\t - organization admin has activated that option and project IS fully funded\n\t - project not fully funded (regardless of admin flag value)", async () => {
+    it.only("should be able for user to cancel investment if: \n\t - organization admin has activated that option and project not fully funded\n\t - organization admin has activated that option and project IS fully funded\n\t - project not fully funded (regardless of admin flag value)", async () => {
         let projectInfo = generateProject()
 
         let orgOwner = util.generateRandomAeWallet()
@@ -447,7 +445,7 @@ describe("Project contract tests", () => {
         let firstCaseTotalFundsRaised = await proj.totalFundsRaised()
         expect(firstCaseTotalFundsRaised).to.equal(0)
 
-        let firstCaseFetchedInvestment = await investorProjInstance.getInvestment()
+        let firstCaseFetchedInvestment = await proj.getInvestment(investor.publicKey)
         expect(firstCaseFetchedInvestment).to.equal(0)
 
         let firstCaseInvestorBalance = await eur.getBalance(investor.publicKey)
@@ -469,7 +467,7 @@ describe("Project contract tests", () => {
         let secondCaseTotalFundsRaised = await proj.totalFundsRaised()
         expect(secondCaseTotalFundsRaised).to.equal(0)
 
-        let secondCaseFetchedInvestment = await investorProjInstance.getInvestment()
+        let secondCaseFetchedInvestment = await proj.getInvestment(investor.publicKey)
         expect(secondCaseFetchedInvestment).to.equal(0)
 
         let secondCaseInvestorBalance = await eur.getBalance(investor.publicKey)
@@ -490,7 +488,7 @@ describe("Project contract tests", () => {
         let thirdCaseTotalFundsRaised = await proj.totalFundsRaised()
         expect(thirdCaseTotalFundsRaised).to.equal(0)
 
-        let thirdCaseFetchedInvestment = await investorProjInstance.getInvestment()
+        let thirdCaseFetchedInvestment = await proj.getInvestment(investor.publicKey)
         expect(thirdCaseFetchedInvestment).to.equal(0)
 
         let thirdCaseInvestorBalance = await eur.getBalance(investor.publicKey)

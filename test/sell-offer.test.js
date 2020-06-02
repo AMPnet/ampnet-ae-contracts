@@ -22,7 +22,7 @@ const deployer = require("./deploy/deployer")
 const util = require('./utils/util')
 const time = require('./utils/time')
 
-describe("Project contract tests", () => {
+describe("SellOffer contract tests", () => {
 
     let accounts
 	let coop
@@ -30,7 +30,7 @@ describe("Project contract tests", () => {
 
     /////////// ---------- SETUP ------------ ///////////
 
-    before(async () => {
+    beforeEach(async () => {
         accounts = await accountsInitializer.initialize(wallets)
         let deployed = await deployer.deploy(accounts)
 		coop = new Cooperative(deployed.coop)
