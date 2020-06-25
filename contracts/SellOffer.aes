@@ -18,6 +18,7 @@ contract SellOffer =
       | CounterOfferRemoved(address)
       | SellOfferCanceled
       | RevenueSharesReturned(address, int)
+      | SellOfferCreated
 
     record state = {
         project         : ProjectInterface,
@@ -39,6 +40,9 @@ contract SellOffer =
         require(
             project.get_investment(Call.origin) >= shares,
             "#Can not place sell offer. Not enough shares to sell.#")
+        
+        Chain.event(SellOfferCreated)
+        
         { project = project,
           token = project.get_token(),
           shares = shares,
@@ -47,7 +51,7 @@ contract SellOffer =
           activated = false,
           settled = false }
 
-    entrypoint get_offer() : (int * int) = (state.shares, state.price)
+    entrypoint get_offer() : (int * int * address * map(address, int)) = (state.shares, state.price, state.project.address, state.counterOffers)
 
     stateful entrypoint activate_offer() =
         require(

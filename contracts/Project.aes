@@ -17,7 +17,7 @@ contract OrgInterface =
     entrypoint owner : () => address
 
 contract SellOfferInterface =
-    entrypoint get_offer: () => (int * int)
+    entrypoint get_offer: () => (int * int * address * map(address, int))
     entrypoint activate_offer : () => unit
 
 contract Project =
@@ -31,6 +31,7 @@ contract Project =
       | ApproveWithdrawProjectFunds(address, int)
       | ApproveTransferProjectShares(address, address, int)
       | SharesTransferred(address, address, int)
+      | SellOfferActivated(address, address)
 
     record state = {
         organization                        : OrgInterface,
@@ -149,9 +150,10 @@ contract Project =
         let info = offer.get_offer()
         let caller = Call.origin
         switch(info)
-            (shares, price) =>
+            (shares, price, project, counterOffers) =>
                 _approve(offer.address, shares)
                 offer.activate_offer()
+        Chain.event(SellOfferActivated(caller, offer.address))
 
     stateful entrypoint start_revenue_shares_payout(revenue: int) =
         check_share_payout_preconditions(Call.origin, revenue)
@@ -350,4 +352,3 @@ contract Project =
             investments[to = 0] @ investment = investment + amount, 
             investments[from] @ investment = investment - amount,
             allowed[(from, caller)] @ approvedForTransfer = approvedForTransfer - amount })
-        Chain.event(SharesTransferred(from, to, amount))
