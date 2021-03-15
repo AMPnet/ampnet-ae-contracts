@@ -24,7 +24,7 @@
   "devDependencies": {
     "bignumber.js": "^9.0.0",
     "bs58check": "^2.1.2",
-    "chai": "^4.2.0",
+    "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
     "from-exponential": "^1.0.0",
     "performance-now": "^2.1.0",
